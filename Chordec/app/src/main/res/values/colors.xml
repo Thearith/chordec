@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="main_background">#ECEFF1</color>
+    <color name="main_titlebar">#34495e</color>
+    <color name="record_layout">#34495e</color>
+
+</resources>
