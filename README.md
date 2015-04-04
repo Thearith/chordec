@@ -3,5 +3,7 @@ An android application to record and detect guitar chords
 
 Libraries
 
-Androidplot: http://androidplot.com/ <br/>
-EasyAnimation: https://github.com/2359media/EasyAndroidAnimations
+<ul>
+<li>Androidplot: http://androidplot.com/ <br/></li>
+<li>EasyAnimation: https://github.com/2359media/EasyAndroidAnimations</li>
+</ul>
