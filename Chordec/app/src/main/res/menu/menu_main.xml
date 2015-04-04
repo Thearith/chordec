@@ -5,6 +5,7 @@
 
     <item
         android:title="@string/action_database"
+        android:orderInCategory="0"
         android:id="@+id/action_database"
         android:icon="@drawable/database"
         app:showAsAction="always"/>

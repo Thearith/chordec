@@ -8,7 +8,6 @@ import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageButton;
@@ -20,8 +19,6 @@ import com.easyandroidanimations.library.FadeOutAnimation;
 import com.easyandroidanimations.library.RotationAnimation;
 import com.example.chordec.chordec.CSurfaceView.SoundCSurfaceView;
 import com.example.chordec.chordec.SoundSampler.SoundSampler;
-
-import java.lang.reflect.Method;
 
 
 public class MainActivity extends Activity
