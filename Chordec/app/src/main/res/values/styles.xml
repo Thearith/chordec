@@ -1,14 +1,21 @@
 <resources>
 
-    <style name="CustomActionBarTheme"
-        parent="@style/Theme.AppCompat">
-        <item name="android:actionBarStyle">@style/MyActionBar</item>
+    <style name="ActionBarTheme"
+        parent="@android:style/Theme.Holo.Light">
+        <item name="android:actionBarStyle">@style/ActionBarTheme.ActionBarStyle</item>
     </style>
 
     <!-- ActionBar styles -->
-    <style name="MyActionBar"
-        parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">
+    <style name="ActionBarTheme.ActionBarStyle"
+        parent="@android:style/Widget.Holo.Light.ActionBar">
         <item name="android:background">@color/main_titlebar</item>
+        <item name="android:icon">@drawable/app_logo</item>
+        <item name="android:titleTextStyle">@style/ActionBarTheme.ActionBarStyle.TitleTextStyle</item>
+    </style>
+
+    <style name="ActionBarTheme.ActionBarStyle.TitleTextStyle" parent="@android:style/Widget.Holo.Light.ActionBar">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">20sp</item>
     </style>
 
 </resources>

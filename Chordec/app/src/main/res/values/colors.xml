@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="splash_background">#2c3e50</color>
+    <color name="main_titlebar">#2c3e50</color>
     <color name="main_background">#ECEFF1</color>
-    <color name="main_titlebar">#34495e</color>
-    <color name="record_layout">#34495e</color>
+    <color name="record_layout">#37474F</color>
 
 </resources>

@@ -9,36 +9,38 @@
 
     <ImageButton
         android:id="@+id/recordButton"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="@dimen/record_button_width"
+        android:layout_height="@dimen/record_button_height"
         android:adjustViewBounds="true"
         android:scaleType="centerInside"
         android:src="@drawable/app_logo"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:background="@android:color/transparent"
-        android:layout_marginTop="120dp" />
+        android:layout_marginTop="@dimen/record_button_margin_top" />
 
     <!--<com.example.chordec.chordec.CSurfaceView.SoundCSurfaceView-->
         <!--android:id="@+id/csurfaceview"-->
         <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="300dp"-->
+        <!--android:layout_height="250dp"-->
         <!--android:layout_alignParentTop="true"-->
         <!--android:layout_centerHorizontal="true"-->
         <!--android:layout_marginTop="120dp"-->
-        <!--android:visibility="gone" />-->
+        <!--android:soundEffectsEnabled="true"-->
+        <!--android:visibility="visible" />-->
 
     <RelativeLayout
         android:id="@+id/recordLayout"
         android:layout_width="match_parent"
-        android:layout_height="120dp"
+        android:layout_height="@dimen/record_layout_height"
         android:layout_alignParentBottom="true"
-        android:background="@color/record_layout">
+        android:background="@color/record_layout"
+        android:visibility="gone">
 
         <ImageButton
             android:id="@+id/pauseButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/record_layout_button_width"
+            android:layout_height="@dimen/record_layout_button_height"
             android:layout_centerVertical="true"
             android:layout_alignParentLeft="true"
             android:layout_marginLeft="25dp"
@@ -47,8 +49,8 @@
 
         <ImageButton
             android:id="@+id/stopButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/record_layout_button_width"
+            android:layout_height="@dimen/record_layout_button_height"
             android:layout_centerVertical="true"
             android:layout_alignParentRight="true"
             android:layout_marginRight="25dp"

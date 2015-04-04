@@ -3,9 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".MainActivity">
 
-    <item android:id="@+id/action_database"
-        android:icon="@drawable/database"
+    <item
         android:title="@string/action_database"
-        app:showAsAction="always" />
+        android:id="@+id/action_database"
+        android:icon="@drawable/database"
+        app:showAsAction="always"/>
 
 </menu>
