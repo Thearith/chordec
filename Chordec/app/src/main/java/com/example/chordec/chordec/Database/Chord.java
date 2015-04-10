@@ -7,7 +7,17 @@ public class Chord {
 
     private int chordID;
     private String chordName;
-    private int chordTime;
+    private int chordDuration;
+    private long chordDate;
+
+    public long getChordDate() {
+        return chordDate;
+    }
+
+    public void setChordDate(long chordDate) {
+        this.chordDate = chordDate;
+    }
+
     private String chordScore;
     private String chordPath;
 
@@ -44,11 +54,11 @@ public class Chord {
         this.chordPath = chordPath;
     }
 
-    public int getChordTime() {
-        return chordTime;
+    public int getChordDuration() {
+        return chordDuration;
     }
 
-    public void setChordTime(int time) {
-        this.chordTime = time;
+    public void setChordDuration(int duration) {
+        this.chordDuration = duration;
     }
 }

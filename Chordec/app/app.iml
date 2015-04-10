@@ -89,6 +89,7 @@
     <orderEntry type="library" exported="" name="support-annotations-21.0.3" level="project" />
     <orderEntry type="library" exported="" name="easyandroidanimationslibrary-v0.5" level="project" />
     <orderEntry type="library" exported="" name="support-v4-21.0.3" level="project" />
+    <orderEntry type="library" exported="" name="com.amulyakhare.textdrawable-1.0.1" level="project" />
   </component>
 </module>
 

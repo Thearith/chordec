@@ -6,5 +6,6 @@
     <string name="action_database">Database</string>
     <string name="title_activity_splash">Splash</string>
     <string name="title_activity_database">DatabaseActivity</string>
+    <string name="title_activity_play">PlayActivity</string>
 
 </resources>

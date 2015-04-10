@@ -44,8 +44,7 @@
             android:layout_centerVertical="true"
             android:layout_alignParentLeft="true"
             android:layout_marginLeft="25dp"
-            android:background="@android:color/transparent"
-            android:src="@drawable/pause"/>
+            android:background="@android:color/transparent"/>
 
         <ImageButton
             android:id="@+id/stopButton"

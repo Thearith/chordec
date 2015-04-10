@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/list_item_height"
+    android:layout_marginLeft="10dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:id="@+id/roundedLetter"
+        android:layout_weight="1"
+        android:layout_width="@dimen/list_item_round_letter_width"
+        android:layout_height="@dimen/list_item_round_letter_width"
+        android:layout_marginLeft="@dimen/list_item_round_letter_margin"
+        android:layout_marginRight="@dimen/list_item_round_letter_margin" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_weight="3"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/chordID"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/chordName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="Every Teardrop is a Waterfall"/>
+
+        <TextView
+            android:id="@+id/chordDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:layout_marginBottom="10dp"
+            android:textColor="#333"
+            android:text="April 24th, 2014 | 6:30 pm"/>
+
+        <TextView
+            android:id="@+id/chordDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:text="3:46"/>
+
+    </LinearLayout>
+
+</LinearLayout>

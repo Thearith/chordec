@@ -1,12 +1,26 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     tools:context="com.example.chordec.chordec.DatabaseActivity">
 
-    <TextView android:text="@string/hello_world" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/itemsText"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="#ECEFF1"
+        android:gravity="center"
+        android:textStyle="bold"
+        android:textSize="17sp"
+        android:textColor="#666"
+        android:text="10 records 110 minutes"/>
+
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        </ListView>
+
+
 
 </RelativeLayout>

@@ -2,6 +2,7 @@ package com.example.chordec.chordec;
 
 import android.app.Activity;
 import android.graphics.Point;
+import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
@@ -18,17 +19,22 @@ import com.easyandroidanimations.library.FadeInAnimation;
 import com.easyandroidanimations.library.FadeOutAnimation;
 import com.easyandroidanimations.library.RotationAnimation;
 import com.example.chordec.chordec.CSurfaceView.SoundCSurfaceView;
+import com.example.chordec.chordec.Database.Database;
 import com.example.chordec.chordec.SoundSampler.SoundSampler;
 
 
 public class MainActivity extends Activity
     implements View.OnClickListener{
 
-    // constants
+    // TAG
     private static final String TAG = MainActivity.class.getSimpleName();
+
+
+    // Constants
     private static final int ROTATION_DURATION = 1500;
     private static final int TRANSLATE_DURATION = 1000;
     private static final int FADE_DURATION = 1000;
+
 
     // widgets in activity_main.xml
     private ImageButton recordButton;
@@ -36,87 +42,142 @@ public class MainActivity extends Activity
     private ImageButton stopButton;
     //public SoundCSurfaceView surfaceView;
 
+
     // layouts in activity_main.xml
     private RelativeLayout recordLayout;
+
+
+    // database
+    private static Database database;
 
     //sound sampling
     private SoundSampler soundSampler;
     public  short[]  buffer;
     public  int      bufferSize;
 
+
+    //recorder
+    private MediaRecorder myRecorder;
+    private String outputFile = null;
+
+
     //dimensions and positioning
     private int screenWidth;
     private int screenHeight;
     private int translateY;
 
+
     // states
     boolean isRecordLayoutVisible = false;
-    boolean isPause = true;
+    boolean isPause = false;
+
+    /*
+        overridden methods - crucial for the activity class
+    */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // initialize widgets
+        initializeState();
+
+        initializeWidgets();
+
+        initializeLayout();
+
+        initializeRecorder();
+
+        initializePositioning();
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_database) {
+            goToDatabase();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+
+    private void goToDatabase() {
+
+    }
+
+    /*
+        initialize functions
+    */
+
+    private void initializeState() {
+        isRecordLayoutVisible = false;
+        isPause = false;
+    }
+
+    private void initializeWidgets() {
         recordButton = (ImageButton) findViewById(R.id.recordButton);
         recordButton.setOnClickListener(this);
 
         pauseButton = (ImageButton) findViewById(R.id.pauseButton);
         pauseButton.setOnClickListener(this);
+        pauseButton.setBackgroundResource(R.drawable.pause);
 
         stopButton = (ImageButton) findViewById(R.id.stopButton);
         stopButton.setOnClickListener(this);
+    }
 
-        // initialize layouts
+
+    private void initializeLayout() {
         recordLayout = (RelativeLayout) findViewById(R.id.recordLayout);
+    }
 
-        // get screen dimensions
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
+    private void initializeRecorder() {
+        // TODO : mediarecorder or audiorecorder
+
+    }
+
+    private void initializePositioning() {
+
+        Point size = getScreenDimension();
+
         screenWidth = size.x;
         screenHeight = size.y;
 
-        translateY =(int)( screenHeight - (
-                getResources().getDimension(R.dimen.record_layout_height)*5/6.0 +
-                getResources().getDimension(R.dimen.record_button_height) +
-                getResources().getDimension(R.dimen.record_button_margin_top)));
+        translateY = (int) (screenHeight - (
+                getResources().getDimension(R.dimen.record_layout_height) * 5 / 6.0 +
+                        getResources().getDimension(R.dimen.record_button_height) +
+                        getResources().getDimension(R.dimen.record_button_margin_top)));
+
         Log.d(TAG, "translateY = " + translateY);
-
-//        initialize sound sampler
-//        try {
-//            soundSampler = new SoundSampler(this);
-//
-//        } catch (Exception e) {
-//            Log.e(TAG, "Cannot instantiate SoundSampler");
-//        }
-//
-//        try {
-//            soundSampler.init();
-//        } catch (Exception e) {
-//            Log.e(TAG, "Cannot initialize SoundSampler");
-//        }
-//
-//        surfaceView = (SoundCSurfaceView)findViewById(R.id.csurfaceview);
-//        surfaceView.drawThread.setBuffer(buffer);
-        //surfaceView.drawFlag = Boolean.valueOf(false);
-
     }
+
+    /*
+        event handlers
+    */
 
     public void onClick(View v) {
         switch(v.getId()) {
             case R.id.recordButton:
                 isRecordLayoutVisible = !isRecordLayoutVisible;
                 animateRecordButton();
-                //changeSurfaceViewVisibility();
 
                 break;
 
             case R.id.pauseButton:
                 if(isRecordLayoutVisible) {
                     changePauseButtonSrc();
-                    //pauseSurfaceView();
                 }
 
                 break;
@@ -217,23 +278,6 @@ public class MainActivity extends Activity
         new FadeOutAnimation(recordLayout).setDuration(FADE_DURATION).animate();
     }
 
-//    private void changeSurfaceViewVisibility() {
-//        if(isRecordLayoutVisible) {
-//            setSurfaceViewVisibility(View.VISIBLE);
-//            //setDrawFlag(true);
-//        } else {
-//            setSurfaceViewVisibility(View.INVISIBLE);
-//            //setDrawFlag(false);
-//        }
-//    }
-//    private void setSurfaceViewVisibility(int visibility) {
-//        surfaceView.setVisibility(visibility);
-//    }
-//
-//    private void setDrawFlag(boolean value) {
-//        surfaceView.drawFlag = Boolean.valueOf(value);
-//    }
-
     private void changePauseButtonSrc() {
         isPause = !isPause;
         if(isPause) {
@@ -242,39 +286,18 @@ public class MainActivity extends Activity
             pauseButton.setBackgroundResource(R.drawable.pause);
         }
     }
-//
-//    private void pauseSurfaceView() {
-//        if (!isPause) {
-//            surfaceView.drawThread.soundCapture = Boolean.valueOf(false);
-//            surfaceView.drawThread.segmentIndex = -1;
-//        }
-//        else {
-//            surfaceView.drawThread.soundCapture = Boolean.valueOf(true);
-//
-//        }
-//    }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+    /*
+        helper functions
+    */
+
+    private Point getScreenDimension() {
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+
+        return size;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_database) {
-            goToDatabase();
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void goToDatabase() {
-
-    }
 
 }

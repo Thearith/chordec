@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -27,6 +28,10 @@
         <activity
             android:name=".DatabaseActivity"
             android:label="@string/title_activity_database" >
+        </activity>
+        <activity
+            android:name=".PlayActivity"
+            android:label="@string/title_activity_play" >
         </activity>
     </application>
 
