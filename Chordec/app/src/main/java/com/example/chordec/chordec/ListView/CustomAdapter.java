@@ -29,10 +29,6 @@ public class CustomAdapter extends ArrayAdapter<Chord> {
     private static final int LIST_ITEM_XML
             = R.layout.activity_database_listitem;
 
-    private static final int MILLISECONDS_RATE = 1000;
-    private static final int HOURS_RATE = 3600;
-    private static final int MINUTES_RATE = 60;
-
     private final Context context;
     private final ArrayList<Chord> chords;
 
@@ -58,10 +54,10 @@ public class CustomAdapter extends ArrayAdapter<Chord> {
             chordName.setText(name);
 
             TextView chordDate = (TextView) convertView.findViewById(R.id.chordDate);
-            chordDate.setText(getDateFormat(chords.get(position).getChordDate()));
+            chordDate.setText(Constants.getDateFormat(chords.get(position).getChordDate()));
 
             TextView chordDuration = (TextView) convertView.findViewById(R.id.chordDuration);
-            chordDuration.setText(getDurationFormat(chords.get(position).getChordDuration()));
+            chordDuration.setText(Constants.getDurationFormat(chords.get(position).getChordDuration()));
 
             TextView chordID = (TextView) convertView.findViewById(R.id.chordID);
             chordID.setText(chords.get(position).getChordID());
@@ -97,25 +93,7 @@ public class CustomAdapter extends ArrayAdapter<Chord> {
     * Helper function -- formatting
     * */
 
-    private String getDateFormat(long milliseconds) {
-        Date date = new Date(milliseconds);
-        SimpleDateFormat ft = new SimpleDateFormat("MMMM dd yyyy | HH:mm a");
 
-        return ft.format(date);
-    }
-
-    private String getDurationFormat(int duration) {
-
-        int seconds = duration / MILLISECONDS_RATE;
-
-        int hour = seconds / HOURS_RATE;
-        int minute = (seconds - hour*HOURS_RATE) / MINUTES_RATE;
-        int second = (seconds - minute*MINUTES_RATE);
-
-        return hour == 0 ?
-                (minute + ":" + second) :
-                (hour + ":" + minute + ":" + second);
-    }
 
 
 }

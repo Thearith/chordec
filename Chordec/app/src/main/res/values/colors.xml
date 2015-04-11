@@ -4,5 +4,6 @@
     <color name="main_titlebar">#2c3e50</color>
     <color name="main_background">#ECEFF1</color>
     <color name="record_layout">#37474F</color>
+    <color name="edit_text_floating_color">#1abc9c</color>
 
 </resources>

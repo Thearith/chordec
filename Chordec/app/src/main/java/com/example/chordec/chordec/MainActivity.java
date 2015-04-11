@@ -1,11 +1,18 @@
 package com.example.chordec.chordec;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Display;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -13,14 +20,21 @@ import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.easyandroidanimations.library.AnimationListener;
 import com.easyandroidanimations.library.FadeInAnimation;
 import com.easyandroidanimations.library.FadeOutAnimation;
 import com.easyandroidanimations.library.RotationAnimation;
 import com.example.chordec.chordec.CSurfaceView.SoundCSurfaceView;
+import com.example.chordec.chordec.Database.Chord;
 import com.example.chordec.chordec.Database.Database;
+import com.example.chordec.chordec.Helper.Constants;
 import com.example.chordec.chordec.SoundSampler.SoundSampler;
+import com.rengwuxian.materialedittext.MaterialEditText;
+
+import java.util.Date;
 
 
 public class MainActivity extends Activity
@@ -28,7 +42,8 @@ public class MainActivity extends Activity
 
     // TAG
     private static final String TAG = MainActivity.class.getSimpleName();
-
+    private static final String APP_FILE_NAME = "CHORDEC";
+    private static final String FILE_EXTENSION = ".pcm";
 
     // Constants
     private static final int ROTATION_DURATION = 1500;
@@ -53,12 +68,10 @@ public class MainActivity extends Activity
     //sound sampling
     private SoundSampler soundSampler;
     public  short[]  buffer;
-    public  int      bufferSize;
+    public  int      bufferSize = 1024;
+    private String   filePath;
 
-
-    //recorder
-    private MediaRecorder myRecorder;
-    private String outputFile = null;
+    private int      duration = 0;
 
 
     //dimensions and positioning
@@ -114,7 +127,8 @@ public class MainActivity extends Activity
 
 
     private void goToDatabase() {
-
+        Intent intent = new Intent(this, DatabaseActivity.class);
+        startActivity(intent);
     }
 
     /*
@@ -144,8 +158,8 @@ public class MainActivity extends Activity
     }
 
     private void initializeRecorder() {
-        // TODO : mediarecorder or audiorecorder
-
+        initializeFile();
+        initializeSoundSampler();
     }
 
     private void initializePositioning() {
@@ -161,6 +175,31 @@ public class MainActivity extends Activity
                         getResources().getDimension(R.dimen.record_button_margin_top)));
 
         Log.d(TAG, "translateY = " + translateY);
+    }
+
+    private void initializeFile() {
+        Database database = new Database(this);
+        int nextCardID = database.getNextChordId();
+
+        filePath = Environment.getExternalStorageDirectory().getAbsolutePath()
+                + APP_FILE_NAME + "-" + nextCardID + FILE_EXTENSION;
+    }
+
+    private void initializeSoundSampler(){
+
+        try {
+            soundSampler = new SoundSampler(this, filePath);
+
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), "Cannot instantiate SoundSampler", Toast.LENGTH_LONG).show();
+        }
+
+        try {
+            soundSampler.init();
+
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(),"Cannot initialize SoundSampler.", Toast.LENGTH_LONG).show();
+        }
     }
 
     /*
@@ -183,7 +222,9 @@ public class MainActivity extends Activity
                 break;
 
             case R.id.stopButton:
-
+                if(isRecordLayoutVisible) {
+                    stopRecording();
+                }
                 break;
 
             default:
@@ -192,7 +233,11 @@ public class MainActivity extends Activity
         }
     }
 
-    private void animateRecordButton() {
+    /*
+    * for record button
+    * */
+
+     private void animateRecordButton() {
         bounceAnimation();
     }
 
@@ -278,6 +323,11 @@ public class MainActivity extends Activity
         new FadeOutAnimation(recordLayout).setDuration(FADE_DURATION).animate();
     }
 
+
+    /*
+    * for Pause button
+    * */
+
     private void changePauseButtonSrc() {
         isPause = !isPause;
         if(isPause) {
@@ -286,6 +336,99 @@ public class MainActivity extends Activity
             pauseButton.setBackgroundResource(R.drawable.pause);
         }
     }
+
+    /*
+    * for stop button
+    * */
+
+    private void stopRecording () {
+        stopSampler();
+        saveChord();
+    }
+
+    private void stopSampler() {
+        soundSampler.stop();
+    }
+
+    private void saveChord() {
+        createSaveDialog();
+    }
+
+    private void createSaveDialog() {
+
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        final Date date = new Date();
+
+        // creating view for dialog
+
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View view = inflater.inflate(R.layout.dialog_ui, null);
+
+        TextView chordDuration = (TextView) view.findViewById(R.id.chordDuration);
+        chordDuration.setText(Constants.getDurationFormat(duration));
+
+        TextView chordDate = (TextView) view.findViewById(R.id.chordDate);
+        chordDate.setText(Constants.getDateFormat(date.getTime()));
+
+        final MaterialEditText editText = (MaterialEditText) view.findViewById(R.id.editText);
+        editText.setMaxCharacters(30);
+        editText.setFloatingLabel(1);
+        editText.setFloatingLabelText("Record Name");
+        editText.setFloatingLabelTextColor(
+               getResources().getColor(R.color.edit_text_floating_color));
+        editText.setFloatingLabelTextSize(15);
+
+
+        // configure dialog
+        dialog.setCancelable(false)
+              .setNegativeButton(android.R.string.cancel,
+                      new DialogInterface.OnClickListener() {
+
+                          @Override
+                          public void onClick(DialogInterface dialog, int which) {
+                              dialog.dismiss();
+                          }
+              })
+              .setPositiveButton(android.R.string.ok,
+                      new DialogInterface.OnClickListener() {
+
+                          @Override
+                          public void onClick(DialogInterface dialog, int which) {
+                              String name = editText.getText().toString();
+                              if(name != "") {
+                                  saveToDatabase(name, date);
+                                  Toast.makeText(MainActivity.this,
+                                          "Chord created", Toast.LENGTH_SHORT).show();
+                                  dialog.dismiss();
+                              } else {
+                                  //TODO: form validation for edit text
+                              }
+                          }
+              });
+
+        dialog.create().show();
+
+    }
+
+    private void saveToDatabase (String name, Date date) {
+        Chord chord = saveContent(name, date);
+        database.insertChord(chord);
+    }
+
+    private Chord saveContent(String name, Date date) {
+        Chord chord = new Chord();
+
+        chord.setChordName(name);
+        chord.setChordID(database.getNextChordId());
+        chord.setChordPath(filePath);
+        chord.setChordDate(date.getTime());
+
+        //chord.setChordDate(getDuration());
+        //chord.setChordScore();
+
+        return chord;
+    }
+
 
     /*
         helper functions

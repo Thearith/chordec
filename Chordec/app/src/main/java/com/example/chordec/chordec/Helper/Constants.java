@@ -1,9 +1,16 @@
 package com.example.chordec.chordec.Helper;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * Created by thearith on 11/4/15.
  */
 public class Constants {
+
+    private static final int MILLISECONDS_RATE = 1000;
+    private static final int HOURS_RATE = 3600;
+    private static final int MINUTES_RATE = 60;
 
     public static final String[] COLORS = {
             "#27ae60",
@@ -20,4 +27,24 @@ public class Constants {
     };
 
     public static final String CHORD_ID = "com.example.chordec.chordec.CHORD_ID";
+
+    public static String getDateFormat(long milliseconds) {
+        Date date = new Date(milliseconds);
+        SimpleDateFormat ft = new SimpleDateFormat("MMMM dd yyyy | HH:mm a");
+
+        return ft.format(date);
+    }
+
+    public static String getDurationFormat(int duration) {
+
+        int seconds = duration / MILLISECONDS_RATE;
+
+        int hour = seconds / HOURS_RATE;
+        int minute = (seconds - hour*HOURS_RATE) / MINUTES_RATE;
+        int second = (seconds - minute*MINUTES_RATE);
+
+        return hour == 0 ?
+                (minute + ":" + second) :
+                (hour + ":" + minute + ":" + second);
+    }
 }
