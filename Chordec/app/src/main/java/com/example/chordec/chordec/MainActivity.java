@@ -344,6 +344,10 @@ public class MainActivity extends Activity
     private void stopRecording () {
         stopSampler();
         saveChord();
+
+        // reverting to old view
+        isRecordLayoutVisible = !isRecordLayoutVisible;
+        animateRecordButton();
     }
 
     private void stopSampler() {
