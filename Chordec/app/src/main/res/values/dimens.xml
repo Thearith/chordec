@@ -8,12 +8,17 @@
     <dimen name="record_button_margin_top">80dp</dimen>
 
     <dimen name="record_layout_height">100dp</dimen>
-    <dimen name="record_layout_button_width">50dp</dimen>
-    <dimen name="record_layout_button_height">50dp</dimen>
+    <dimen name="record_layout_button_width">45dp</dimen>
+    <dimen name="record_layout_button_height">45dp</dimen>
 
     <!--list item-->
     <dimen name="list_item_height">100dp</dimen>
     <dimen name="list_item_round_letter_margin">10dp</dimen>
     <dimen name="list_item_round_letter_width">50dp</dimen>
     <dimen name="list_item_arrow_margin">10dp</dimen>
+
+    <!--dialog buttons size-->
+    <dimen name="big_button_size">32dp</dimen>
+    <dimen name="small_button_size">24dp</dimen>
+
 </resources>

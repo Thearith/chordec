@@ -8,9 +8,11 @@ import java.util.Date;
  */
 public class Constants {
 
-    private static final int MILLISECONDS_RATE = 1000;
-    private static final int HOURS_RATE = 3600;
-    private static final int MINUTES_RATE = 60;
+    public static final int MILLISECONDS_RATE = 1000;
+    public static final int HOURS_RATE = 3600;
+    public static final int MINUTES_RATE = 60;
+
+    public static final int BUFFER_SIZE = 1024;
 
     public static final String[] COLORS = {
             "#27ae60",
@@ -43,8 +45,10 @@ public class Constants {
         int minute = (seconds - hour*HOURS_RATE) / MINUTES_RATE;
         int second = (seconds - minute*MINUTES_RATE);
 
+        String text = second < 10 ?
+                minute + ":0" + second : minute + ":" + second;
+
         return hour == 0 ?
-                (minute + ":" + second) :
-                (hour + ":" + minute + ":" + second);
+                text : (hour + ":" + text);
     }
 }

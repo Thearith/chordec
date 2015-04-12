@@ -2,6 +2,7 @@ package com.example.chordec.chordec.ListView;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,8 +27,12 @@ import java.util.Date;
  */
 public class CustomAdapter extends ArrayAdapter<Chord> {
 
+    private static final String TAG = CustomAdapter.class.getSimpleName();
+
     private static final int LIST_ITEM_XML
             = R.layout.activity_database_listitem;
+
+    private static final int TITLE_MAXIMUM_LENGTH = 24;
 
     private final Context context;
     private final ArrayList<Chord> chords;
@@ -51,23 +56,31 @@ public class CustomAdapter extends ArrayAdapter<Chord> {
             String name = chords.get(position).getChordName();
 
             TextView chordName = (TextView) convertView.findViewById(R.id.chordName);
-            chordName.setText(name);
+            if(name.length() >= TITLE_MAXIMUM_LENGTH)
+                chordName.setText(name.substring(0, TITLE_MAXIMUM_LENGTH));
+            else
+                chordName.setText(name);
 
             TextView chordDate = (TextView) convertView.findViewById(R.id.chordDate);
-            chordDate.setText(Constants.getDateFormat(chords.get(position).getChordDate()));
+            chordDate.setText(chords.get(position).getChordDate());
 
             TextView chordDuration = (TextView) convertView.findViewById(R.id.chordDuration);
             chordDuration.setText(Constants.getDurationFormat(chords.get(position).getChordDuration()));
 
             TextView chordID = (TextView) convertView.findViewById(R.id.chordID);
-            chordID.setText(chords.get(position).getChordID());
+            chordID.setText(String.valueOf(chords.get(position).getChordID()));
 
             // make round letters
-            String color = Constants.COLORS[(int)
-                    Math.random() * Constants.COLORS.length];
+            String color = Constants.COLORS[
+                    (int) (Math.random() * Constants.COLORS.length)];
 
             TextDrawable roundLetter = TextDrawable.builder()
-                    .buildRoundRect(name.substring(0, 0), Color.parseColor(color), 10);
+                    .beginConfig()
+                        .toUpperCase()
+                        .fontSize(80)
+                        .withBorder(4)
+                    .endConfig()
+                    .buildRound(name.substring(0, 1), Color.parseColor(color));
 
             ImageView roundedLetter = (ImageView) convertView.findViewById(R.id.roundedLetter);
             roundedLetter.setImageDrawable(roundLetter);

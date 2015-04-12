@@ -24,6 +24,8 @@ public class DatabaseActivity extends Activity {
     private ListView listView;
     private CustomAdapter adapter;
 
+    private TextView itemsText;
+
     /*
     * Overriden methods
     * */
@@ -36,6 +38,7 @@ public class DatabaseActivity extends Activity {
         initializeDatabase();
         initializeAdapter();
         initializeListView();
+        initializeTextView();
     }
 
     @Override
@@ -86,13 +89,20 @@ public class DatabaseActivity extends Activity {
         });
     }
 
+    private void initializeTextView() {
+        String text = database.getNumChords() + " records " +
+                database.getSumDurations() / (float)Constants.MINUTES_RATE + " minutes";
+
+        itemsText = (TextView) findViewById(R.id.itemsText);
+        itemsText.setText(text);
+    }
+
     private void goToPlayActivity(String chordID) {
         Intent intent = new Intent(this, PlayActivity.class);
         intent.putExtra(Constants.CHORD_ID, chordID);
 
         startActivity(intent);
     }
-
 
 
  }

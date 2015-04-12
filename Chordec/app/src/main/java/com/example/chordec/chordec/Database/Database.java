@@ -42,7 +42,7 @@ public class Database extends SQLiteOpenHelper{
             CHORD_NAME          + " text not null, "    +
             CHORD_SCORE         + " text not null, "    +
             CHORD_DURATION      + " integer not null, " +
-            CHORD_DATE_INDEX    + " integer not null, " +
+            CHORD_DATE    + " text not null, " +
             CHORD_FILE_PATH + " text not null);";
 
     private static final String TABLE_CHORD_LOAD =
@@ -127,7 +127,7 @@ public class Database extends SQLiteOpenHelper{
                     String chordName = cursor.getString(CHORD_NAME_INDEX);
                     String chordScore = cursor.getString(CHORD_SCORE_INDEX);
                     int chordDuration = Integer.parseInt(cursor.getString(CHORD_DURATION_INDEX));
-                    int chordDate = Integer.parseInt(cursor.getString(CHORD_DATE_INDEX));
+                    String chordDate = cursor.getString(CHORD_DATE_INDEX);
                     String chordPath = cursor.getString(CHORD_FILE_PATH_INDEX);
 
                     chord.setChordName(chordName);
@@ -173,7 +173,7 @@ public class Database extends SQLiteOpenHelper{
                 String chordName = cursor.getString(CHORD_NAME_INDEX);
                 String chordScore = cursor.getString(CHORD_SCORE_INDEX);
                 int chordTime = Integer.parseInt(cursor.getString(CHORD_DURATION_INDEX));
-                int chordDate = Integer.parseInt(cursor.getString(CHORD_DATE_INDEX));
+                String chordDate = cursor.getString(CHORD_DATE_INDEX);
                 String chordPath = cursor.getString(CHORD_FILE_PATH_INDEX);
 
                 chord.setChordID(chordID);

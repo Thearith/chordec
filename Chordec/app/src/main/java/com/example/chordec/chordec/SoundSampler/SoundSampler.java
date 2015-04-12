@@ -2,10 +2,12 @@ package com.example.chordec.chordec.SoundSampler;
 
 import android.app.Activity;
 import android.media.AudioRecord;
+import android.os.Environment;
 import android.util.Log;
 
 import com.example.chordec.chordec.MainActivity;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -89,7 +91,6 @@ public class SoundSampler {
 
             public void run() {
                 startRecording();
-                //mActivity.surfaceView.drawThread.setBuffer(mActivity.buffer);
             }
         };
 
@@ -122,12 +123,13 @@ public class SoundSampler {
     }
 
     private void writeAudioDataToFile() {
-
         //initialize file outputstream
         FileOutputStream os = null;
+        File file = new File(Environment.getExternalStorageDirectory(), filePath);
+
 
         try {
-            os = new FileOutputStream(filePath);
+            os = new FileOutputStream(file);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

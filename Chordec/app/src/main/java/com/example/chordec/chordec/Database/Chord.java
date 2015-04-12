@@ -8,13 +8,13 @@ public class Chord {
     private int chordID;
     private String chordName;
     private int chordDuration;
-    private long chordDate;
+    private String chordDate;
 
-    public long getChordDate() {
+    public String getChordDate() {
         return chordDate;
     }
 
-    public void setChordDate(long chordDate) {
+    public void setChordDate(String chordDate) {
         this.chordDate = chordDate;
     }
 

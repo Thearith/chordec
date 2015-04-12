@@ -5,9 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.Point;
-import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -18,23 +16,30 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.easyandroidanimations.library.AnimationListener;
+import com.easyandroidanimations.library.BounceAnimation;
 import com.easyandroidanimations.library.FadeInAnimation;
 import com.easyandroidanimations.library.FadeOutAnimation;
 import com.easyandroidanimations.library.RotationAnimation;
-import com.example.chordec.chordec.CSurfaceView.SoundCSurfaceView;
 import com.example.chordec.chordec.Database.Chord;
 import com.example.chordec.chordec.Database.Database;
 import com.example.chordec.chordec.Helper.Constants;
 import com.example.chordec.chordec.SoundSampler.SoundSampler;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MainActivity extends Activity
@@ -49,17 +54,20 @@ public class MainActivity extends Activity
     private static final int ROTATION_DURATION = 1500;
     private static final int TRANSLATE_DURATION = 1000;
     private static final int FADE_DURATION = 1000;
+    private static final int PULSE_DURATION = 800;
 
 
     // widgets in activity_main.xml
     private ImageButton recordButton;
     private ImageButton pauseButton;
     private ImageButton stopButton;
-    //public SoundCSurfaceView surfaceView;
-
+    private TextView    hintText;
+    private ImageView   recordingImage;
+    private TextView    timerTextView;
 
     // layouts in activity_main.xml
     private RelativeLayout recordLayout;
+    private LinearLayout timerLayout;
 
 
     // database
@@ -68,11 +76,15 @@ public class MainActivity extends Activity
     //sound sampling
     private SoundSampler soundSampler;
     public  short[]  buffer;
-    public  int      bufferSize = 1024;
+    public  int      bufferSize = Constants.BUFFER_SIZE;
     private String   filePath;
 
-    private int      duration = 0;
 
+    // timer
+    private boolean isTimerRunning;
+    private Timer timer;
+    private TimerTask timerTask;
+    private int   duration;
 
     //dimensions and positioning
     private int screenWidth;
@@ -94,7 +106,11 @@ public class MainActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        initializeDatabase();
+
         initializeState();
+
+        initializeTimer();
 
         initializeWidgets();
 
@@ -118,7 +134,7 @@ public class MainActivity extends Activity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_database) {
-            goToDatabase();
+            goToDatabaseActivity();
             return true;
         }
 
@@ -126,7 +142,7 @@ public class MainActivity extends Activity
     }
 
 
-    private void goToDatabase() {
+    private void goToDatabaseActivity() {
         Intent intent = new Intent(this, DatabaseActivity.class);
         startActivity(intent);
     }
@@ -135,9 +151,45 @@ public class MainActivity extends Activity
         initialize functions
     */
 
+    private void initializeDatabase() {
+        database = new Database(this);
+    }
+
     private void initializeState() {
         isRecordLayoutVisible = false;
         isPause = false;
+    }
+
+    private void initializeTimer() {
+
+        isTimerRunning = false;
+        timer = new Timer();
+        duration = 0;
+
+        timerTask = new TimerTask() {
+
+            @Override
+            public void run() {
+
+                if(isTimerRunning) {
+                    duration += Constants.MILLISECONDS_RATE;
+                    timerTextView.post(new Runnable() {
+                        public void run() {
+                            timerTextView.setText(
+                                    Constants.getDurationFormat(duration));
+                        }
+                    });
+                    recordingImage.post(new Runnable() {
+                        public void run() {
+                            new BounceAnimation(recordingImage).setNumOfBounces(1)
+                                    .setDuration(PULSE_DURATION).animate();
+                        }
+                    });
+                }
+            }
+        };
+
+        timer.scheduleAtFixedRate(timerTask, 0, Constants.MILLISECONDS_RATE);
     }
 
     private void initializeWidgets() {
@@ -150,11 +202,17 @@ public class MainActivity extends Activity
 
         stopButton = (ImageButton) findViewById(R.id.stopButton);
         stopButton.setOnClickListener(this);
+
+        timerTextView = (TextView) findViewById(R.id.timerTextView);
+
+        hintText = (TextView) findViewById(R.id.hintText);
+        recordingImage = (ImageView) findViewById(R.id.recordingImage);
     }
 
 
     private void initializeLayout() {
         recordLayout = (RelativeLayout) findViewById(R.id.recordLayout);
+        timerLayout = (LinearLayout) findViewById(R.id.timerLayout);
     }
 
     private void initializeRecorder() {
@@ -178,11 +236,10 @@ public class MainActivity extends Activity
     }
 
     private void initializeFile() {
-        Database database = new Database(this);
         int nextCardID = database.getNextChordId();
 
-        filePath = Environment.getExternalStorageDirectory().getAbsolutePath()
-                + APP_FILE_NAME + "-" + nextCardID + FILE_EXTENSION;
+        filePath = APP_FILE_NAME + nextCardID + FILE_EXTENSION;
+        Log.d(TAG, filePath);
     }
 
     private void initializeSoundSampler(){
@@ -209,8 +266,10 @@ public class MainActivity extends Activity
     public void onClick(View v) {
         switch(v.getId()) {
             case R.id.recordButton:
-                isRecordLayoutVisible = !isRecordLayoutVisible;
-                animateRecordButton();
+                if(!isRecordLayoutVisible)
+                    animateRecordButton();
+                isRecordLayoutVisible = true;
+
 
                 break;
 
@@ -238,6 +297,7 @@ public class MainActivity extends Activity
     * */
 
      private void animateRecordButton() {
+        //changeWidgetsVisibility();
         bounceAnimation();
     }
 
@@ -296,7 +356,9 @@ public class MainActivity extends Activity
                 }
 
                 recordButton.setLayoutParams(lp);
-                changeRecordLayout();
+                changeLayoutsVisibility();
+                //changeWidgetsVisibility();
+                startTimer();
             }
 
             @Override
@@ -308,19 +370,40 @@ public class MainActivity extends Activity
         recordButton.bringToFront();
     }
 
-    private void changeRecordLayout() {
-        if(isRecordLayoutVisible)
-            setRecordLayoutVisible();
-        else
-            setRecordLayoutInvisible();
+    private void changeLayoutsVisibility() {
+        if(isRecordLayoutVisible) {
+            setLayoutsVisible();
+        } else {
+            setLayoutsInvisible();
+        }
     }
 
-    private void setRecordLayoutVisible() {
+    private void changeWidgetsVisibility() {
+        if(isRecordLayoutVisible) {
+            setWidgetsVisible();
+        } else {
+            setWidgetsInvisible();
+        }
+    }
+
+    private void setLayoutsVisible() {
         new FadeInAnimation(recordLayout).setDuration(FADE_DURATION).animate();
+        new FadeInAnimation(timerLayout).setDuration(FADE_DURATION).animate();
     }
 
-    private void setRecordLayoutInvisible() {
+    private void setLayoutsInvisible() {
         new FadeOutAnimation(recordLayout).setDuration(FADE_DURATION).animate();
+        new FadeOutAnimation(timerLayout).setDuration(FADE_DURATION).animate();
+    }
+
+    private void setWidgetsVisible() {
+        new FadeOutAnimation(hintText).setDuration(FADE_DURATION).animate();
+        new FadeInAnimation(recordingImage).setDuration(FADE_DURATION).animate();
+    }
+
+    private void setWidgetsInvisible() {
+        new FadeInAnimation(hintText).setDuration(FADE_DURATION).animate();
+        new FadeOutAnimation(recordingImage).setDuration(FADE_DURATION).animate();
     }
 
 
@@ -342,12 +425,9 @@ public class MainActivity extends Activity
     * */
 
     private void stopRecording () {
+        initializeFile();
         stopSampler();
         saveChord();
-
-        // reverting to old view
-        isRecordLayoutVisible = !isRecordLayoutVisible;
-        animateRecordButton();
     }
 
     private void stopSampler() {
@@ -360,8 +440,9 @@ public class MainActivity extends Activity
 
     private void createSaveDialog() {
 
-        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-        final Date date = new Date();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        Date date = Calendar.getInstance().getTime();
+        final String dateFormat = Constants.getDateFormat(date.getTime());
 
         // creating view for dialog
 
@@ -372,24 +453,36 @@ public class MainActivity extends Activity
         chordDuration.setText(Constants.getDurationFormat(duration));
 
         TextView chordDate = (TextView) view.findViewById(R.id.chordDate);
-        chordDate.setText(Constants.getDateFormat(date.getTime()));
+        chordDate.setText(dateFormat);
 
         final MaterialEditText editText = (MaterialEditText) view.findViewById(R.id.editText);
+        editText.setPrimaryColor(
+                getResources().getColor(R.color.edit_text_floating_color));
+
         editText.setMaxCharacters(30);
         editText.setFloatingLabel(1);
         editText.setFloatingLabelText("Record Name");
         editText.setFloatingLabelTextColor(
-               getResources().getColor(R.color.edit_text_floating_color));
-        editText.setFloatingLabelTextSize(15);
+                getResources().getColor(R.color.edit_text_floating_color));
+        editText.setFloatingLabelTextSize(30);
 
+        //hide soft keyboard
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+
+
+        // pause timer
+        pauseTimer();
 
         // configure dialog
-        dialog.setCancelable(false)
+        builder.setView(view)
+              .setCancelable(false)
               .setNegativeButton(android.R.string.cancel,
                       new DialogInterface.OnClickListener() {
 
                           @Override
                           public void onClick(DialogInterface dialog, int which) {
+                              createConfirmCancelDialog();
                               dialog.dismiss();
                           }
               })
@@ -399,38 +492,115 @@ public class MainActivity extends Activity
                           @Override
                           public void onClick(DialogInterface dialog, int which) {
                               String name = editText.getText().toString();
-                              if(name != "") {
-                                  saveToDatabase(name, date);
+
+                              if(!name.isEmpty()) {
+                                  saveToDatabase(name, dateFormat);
                                   Toast.makeText(MainActivity.this,
                                           "Chord created", Toast.LENGTH_SHORT).show();
+
+                                  //resetting record layout
+                                  isRecordLayoutVisible = false;
+                                  animateRecordButton();
+
+                                  //reset timer
+                                  resetTimer();
+
                                   dialog.dismiss();
-                              } else {
-                                  //TODO: form validation for edit text
                               }
                           }
-              });
+              });        builder.setView(view)
+                .setCancelable(false)
+                .setNegativeButton(android.R.string.cancel,
+                        new DialogInterface.OnClickListener() {
 
-        dialog.create().show();
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                resumeTimer();
+                                dialog.dismiss();
+                            }
+                        })
+                .setPositiveButton(android.R.string.ok,
+                        new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                String name = editText.getText().toString();
+
+                                if(!name.isEmpty()) {
+                                    saveToDatabase(name, dateFormat);
+                                    Toast.makeText(MainActivity.this,
+                                            "Chord created", Toast.LENGTH_SHORT).show();
+
+                                    //resetting record layout
+                                    isRecordLayoutVisible = false;
+                                    animateRecordButton();
+
+                                    //reset timer
+                                    resetTimer();
+
+                                    dialog.dismiss();
+                                }
+                            }
+                });
+
+        AlertDialog dialog = builder.create();
+//        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+//            @Override
+//            public void onShow(DialogInterface dialog) {
+//                String name = editText.getText().toString();
+//                Button positiveButton = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
+//                positiveButton.setEnabled(!name.isEmpty());
+//            }
+//        });
+
+        dialog.show();
 
     }
 
-    private void saveToDatabase (String name, Date date) {
+    private void createConfirmCancelDialog() {
+
+    }
+
+    private void saveToDatabase (String name, String date) {
         Chord chord = saveContent(name, date);
         database.insertChord(chord);
     }
 
-    private Chord saveContent(String name, Date date) {
+    private Chord saveContent(String name, String date) {
         Chord chord = new Chord();
 
         chord.setChordName(name);
         chord.setChordID(database.getNextChordId());
         chord.setChordPath(filePath);
-        chord.setChordDate(date.getTime());
+        chord.setChordDate(date);
+        chord.setChordDuration(duration);
 
-        //chord.setChordDate(getDuration());
-        //chord.setChordScore();
+        //TODO: GET REAL SCORE
+        chord.setChordScore("TEE HEE");
 
         return chord;
+    }
+
+    /*
+    * Timer utility functions
+    * */
+
+    private void startTimer() {
+        isTimerRunning = true;
+        duration = 0;
+    }
+
+    private void pauseTimer() {
+        isTimerRunning = false;
+    }
+
+    private void resumeTimer() {
+        isTimerRunning = true;
+    }
+
+    private void resetTimer() {
+        duration = 0;
+        isTimerRunning = false;
     }
 
 
