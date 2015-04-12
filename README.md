@@ -1,7 +1,7 @@
 # chordec
 An android application to record and detect guitar chords
 
-Libraries
+UI Libraries
 
 <ul>
 <li>Androidplot: http://androidplot.com/ <br/></li>
