@@ -3,4 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.chordec.chordec.DatabaseActivity">
 
+    <item
+        android:title="@string/action_delete"
+        android:orderInCategory="10"
+        android:id="@+id/action_delete"
+        android:icon="@drawable/delete"
+        app:showAsAction="always"
+        />
+
 </menu>

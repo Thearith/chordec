@@ -9,6 +9,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import com.example.chordec.chordec.Database.Chord;
 import com.example.chordec.chordec.Database.Database;
@@ -23,22 +24,26 @@ import java.io.IOException;
 import java.io.InputStream;
 
 
-public class PlayActivity extends Activity {
+public class PlayActivity extends ActionBarActivity {
+
+
+    private Database database;
 
     private Chord chord;
 
-    private Database database;
+    // widgets
+    private TextView titleTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
 
-        int chordID = Integer.parseInt(
-                getIntent().getStringExtra(Constants.CHORD_ID));
+        initializeDatabase();
 
-        database = new Database(this);
-        chord = database.getChord(chordID);
+        initializeData();
+
+        initializeWidgets();
 
         playRecord();
     }
@@ -62,6 +67,25 @@ public class PlayActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /*
+    * Initialize methods
+    * */
+
+    private void initializeDatabase() {
+        database = new Database(this);
+    }
+
+    private void initializeData() {
+        int chordID = Integer.parseInt(
+                getIntent().getStringExtra(Constants.CHORD_ID));
+        chord = database.getChord(chordID);
+    }
+
+    private void initializeWidgets() {
+        titleTextView = (TextView) findViewById(R.id.titleTextView);
+        titleTextView.setText(chord.getChordName());
     }
 
     void playRecord(){

@@ -1,13 +1,13 @@
 package com.example.chordec.chordec;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
-import android.os.Environment;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -17,7 +17,6 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -42,7 +41,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class MainActivity extends Activity
+
+public class MainActivity extends ActionBarActivity
     implements View.OnClickListener{
 
     // TAG
@@ -61,13 +61,17 @@ public class MainActivity extends Activity
     private ImageButton recordButton;
     private ImageButton pauseButton;
     private ImageButton stopButton;
-    private TextView    hintText;
     private ImageView   recordingImage;
     private TextView    timerTextView;
+
+    private TextView    hintText;
+    private ImageView    hintImage;
+    private TextView    hintText2;
 
     // layouts in activity_main.xml
     private RelativeLayout recordLayout;
     private LinearLayout timerLayout;
+
 
 
     // database
@@ -106,6 +110,8 @@ public class MainActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        customizeActionBar();
+
         initializeDatabase();
 
         initializeState();
@@ -141,6 +147,12 @@ public class MainActivity extends Activity
         return super.onOptionsItemSelected(item);
     }
 
+    private void customizeActionBar() {
+        ActionBar menu = getSupportActionBar();
+        menu.setIcon(R.drawable.app_logo);
+        menu.setLogo(R.drawable.app_logo);
+        menu.setDisplayUseLogoEnabled(true);
+    }
 
     private void goToDatabaseActivity() {
         Intent intent = new Intent(this, DatabaseActivity.class);
@@ -206,6 +218,9 @@ public class MainActivity extends Activity
         timerTextView = (TextView) findViewById(R.id.timerTextView);
 
         hintText = (TextView) findViewById(R.id.hintText);
+        hintImage = (ImageView) findViewById(R.id.hintImage);
+        hintText2 = (TextView) findViewById(R.id.hintText2);
+
         recordingImage = (ImageView) findViewById(R.id.recordingImage);
     }
 
@@ -357,7 +372,7 @@ public class MainActivity extends Activity
 
                 recordButton.setLayoutParams(lp);
                 changeLayoutsVisibility();
-                //changeWidgetsVisibility();
+                changeWidgetsVisibility();
                 startTimer();
             }
 
@@ -398,11 +413,17 @@ public class MainActivity extends Activity
 
     private void setWidgetsVisible() {
         new FadeOutAnimation(hintText).setDuration(FADE_DURATION).animate();
+        new FadeOutAnimation(hintImage).setDuration(FADE_DURATION).animate();
+        new FadeOutAnimation(hintText2).setDuration(FADE_DURATION).animate();
+
         new FadeInAnimation(recordingImage).setDuration(FADE_DURATION).animate();
     }
 
     private void setWidgetsInvisible() {
         new FadeInAnimation(hintText).setDuration(FADE_DURATION).animate();
+        new FadeInAnimation(hintImage).setDuration(FADE_DURATION).animate();
+        new FadeInAnimation(hintText2).setDuration(FADE_DURATION).animate();
+
         new FadeOutAnimation(recordingImage).setDuration(FADE_DURATION).animate();
     }
 

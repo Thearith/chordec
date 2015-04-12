@@ -3,6 +3,7 @@ package com.example.chordec.chordec.ListView;
 import android.content.Context;
 import android.graphics.Color;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,10 +38,22 @@ public class CustomAdapter extends ArrayAdapter<Chord> {
     private final Context context;
     private final ArrayList<Chord> chords;
 
+
+    private SparseBooleanArray mSelectedItemsIds;
+
+    private class ViewHolder {
+        TextView ChordName;
+        TextView ChordDate;
+        TextView ChordDuration;
+        TextView ChordID;
+        ImageView RoundedLetter;
+    }
+
     public CustomAdapter(Context context, int layout, ArrayList<Chord> values) {
         super(context, layout, values);
         this.context = context;
         this.chords = values;
+        mSelectedItemsIds = new SparseBooleanArray();
     }
 
     @Override
@@ -49,43 +62,53 @@ public class CustomAdapter extends ArrayAdapter<Chord> {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
+        ViewHolder holder;
+
         if(convertView == null) {
             convertView = inflater.inflate(LIST_ITEM_XML, parent, false);
+            holder = new ViewHolder();
 
-            // insert view
-            String name = chords.get(position).getChordName();
+            holder.ChordName = (TextView) convertView.findViewById(R.id.chordName);
+            holder.ChordDate = (TextView) convertView.findViewById(R.id.chordDate);
+            holder.ChordDuration = (TextView) convertView.findViewById(R.id.chordDuration);
+            holder.ChordID = (TextView) convertView.findViewById(R.id.chordID);
+            holder.RoundedLetter = (ImageView) convertView.findViewById(R.id.roundedLetter);
 
-            TextView chordName = (TextView) convertView.findViewById(R.id.chordName);
-            if(name.length() >= TITLE_MAXIMUM_LENGTH)
-                chordName.setText(name.substring(0, TITLE_MAXIMUM_LENGTH));
-            else
-                chordName.setText(name);
+            convertView.setTag(holder);
 
-            TextView chordDate = (TextView) convertView.findViewById(R.id.chordDate);
-            chordDate.setText(chords.get(position).getChordDate());
-
-            TextView chordDuration = (TextView) convertView.findViewById(R.id.chordDuration);
-            chordDuration.setText(Constants.getDurationFormat(chords.get(position).getChordDuration()));
-
-            TextView chordID = (TextView) convertView.findViewById(R.id.chordID);
-            chordID.setText(String.valueOf(chords.get(position).getChordID()));
-
-            // make round letters
-            String color = Constants.COLORS[
-                    (int) (Math.random() * Constants.COLORS.length)];
-
-            TextDrawable roundLetter = TextDrawable.builder()
-                    .beginConfig()
-                        .toUpperCase()
-                        .fontSize(80)
-                        .withBorder(4)
-                    .endConfig()
-                    .buildRound(name.substring(0, 1), Color.parseColor(color));
-
-            ImageView roundedLetter = (ImageView) convertView.findViewById(R.id.roundedLetter);
-            roundedLetter.setImageDrawable(roundLetter);
-
+        } else {
+            holder = (ViewHolder)  convertView.getTag();
         }
+
+        String name = chords.get(position).getChordName();
+        if(name.length() >= TITLE_MAXIMUM_LENGTH)
+            holder.ChordName.setText(name.substring(0, TITLE_MAXIMUM_LENGTH));
+        else
+            holder.ChordName.setText(name);
+
+
+        holder.ChordDate.setText(chords.get(position).getChordDate());
+
+        holder.ChordDuration.setText(Constants.getDurationFormat(chords.get(position).getChordDuration()));
+
+        holder.ChordID.setText(String.valueOf(chords.get(position).getChordID()));
+
+        // make round letters
+        String color = Constants.COLORS[
+                (int) (Math.random() * Constants.COLORS.length)];
+
+        TextDrawable roundLetter = TextDrawable.builder()
+                .beginConfig()
+                .toUpperCase()
+                .fontSize(80)
+                .withBorder(4)
+                .endConfig()
+                .buildRoundRect(name.substring(0, 1),
+                        Color.parseColor(color),
+                        60);
+
+        holder.RoundedLetter.setImageDrawable(roundLetter);
+
 
         return convertView;
     }
@@ -101,12 +124,32 @@ public class CustomAdapter extends ArrayAdapter<Chord> {
 
     }
 
+    @Override
+    public void remove(Chord chord) {
+        chords.remove(chord);
+        notifyDataSetChanged();
+    }
 
-    /*
-    * Helper function -- formatting
-    * */
+    public void toggleSelection(int position) {
+        selectView(position, !mSelectedItemsIds.get(position));
+    }
 
+    public void removeSelection() {
+        mSelectedItemsIds = new SparseBooleanArray();
+        notifyDataSetChanged();
+    }
 
+    public void selectView(int position, boolean value) {
+        if (value)
+            mSelectedItemsIds.put(position, value);
+        else
+            mSelectedItemsIds.delete(position);
 
+        notifyDataSetChanged();
+    }
+
+    public SparseBooleanArray getSelectedIds() {
+        return mSelectedItemsIds;
+    }
 
 }

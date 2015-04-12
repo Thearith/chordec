@@ -1,19 +1,21 @@
 <resources>
 
     <style name="ActionBarTheme"
-        parent="@android:style/Theme.Holo.Light">
+        parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/main_titlebar</item>
         <item name="android:actionBarStyle">@style/ActionBarTheme.ActionBarStyle</item>
+        <item name="android:icon">@drawable/app_logo</item>
+        <item name="android:logo">@drawable/app_logo</item>
     </style>
 
     <!-- ActionBar styles -->
     <style name="ActionBarTheme.ActionBarStyle"
-        parent="@android:style/Widget.Holo.Light.ActionBar">
-        <item name="android:background">@color/main_titlebar</item>
-        <item name="android:icon">@drawable/app_logo</item>
+        parent="Widget.AppCompat.Light.ActionBar">
+        <item name="android:paddingRight">20dp</item>
         <item name="android:titleTextStyle">@style/ActionBarTheme.ActionBarStyle.TitleTextStyle</item>
     </style>
 
-    <style name="ActionBarTheme.ActionBarStyle.TitleTextStyle" parent="@android:style/Widget.Holo.Light.ActionBar">
+    <style name="ActionBarTheme.ActionBarStyle.TitleTextStyle" parent="Widget.AppCompat.Light.ActionBar">
         <item name="android:textColor">@android:color/white</item>
         <item name="android:textSize">20sp</item>
     </style>

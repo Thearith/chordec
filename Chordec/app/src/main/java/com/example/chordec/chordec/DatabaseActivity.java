@@ -1,23 +1,29 @@
 package com.example.chordec.chordec;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.util.SparseBooleanArray;
+import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.chordec.chordec.Database.Chord;
 import com.example.chordec.chordec.Database.Database;
 import com.example.chordec.chordec.Helper.Constants;
 import com.example.chordec.chordec.ListView.CustomAdapter;
 
 
-public class DatabaseActivity extends Activity {
 
+public class DatabaseActivity extends ActionBarActivity {
+
+    private static final String TAG = DatabaseActivity.class.getSimpleName();
 
     private Database database;
 
@@ -50,12 +56,12 @@ public class DatabaseActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_delete) {
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -87,14 +93,83 @@ public class DatabaseActivity extends Activity {
                 goToPlayActivity(chordID);
             }
         });
+
+
+        listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+        listView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
+
+            @Override
+            public void onItemCheckedStateChanged(ActionMode mode,
+                                                  int position, long id, boolean checked) {
+
+                final int checkedCount = listView.getCheckedItemCount();
+                mode.setTitle(checkedCount + " Selected");
+                adapter.toggleSelection(position);
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                switch (item.getItemId()) {
+
+                    case R.id.action_delete:
+
+                        SparseBooleanArray selected = adapter
+                                .getSelectedIds();
+
+                        Log.d(TAG, "clicked");
+
+                        for (int i = (selected.size() - 1); i >= 0; i--) {
+                            if (selected.valueAt(i)) {
+                                Chord chord = adapter
+                                        .getItem(selected.keyAt(i));
+
+                                database.deleteChord(chord.getChordID());
+                                adapter.remove(chord);
+                            }
+                        }
+
+                        mode.finish();
+                        return true;
+
+                    default:
+                        return false;
+                }
+            }
+
+            @Override
+            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                mode.getMenuInflater().inflate(R.menu.menu_database, menu);
+                return true;
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode mode) {
+                adapter.removeSelection();
+            }
+
+            @Override
+            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                return false;
+            }
+        });
+
     }
 
     private void initializeTextView() {
-        String text = database.getNumChords() + " records " +
-                database.getSumDurations() / (float)Constants.MINUTES_RATE + " minutes";
+
+        int duration = database.getSumDurations();
+        String durationString = Constants.getDurationFormat(duration);
+
+        String records = database.getNumChords() > 1 ?
+                database.getNumChords() + " records" :
+                database.getNumChords() + " record";
+
+        String durations = duration > (Constants.MILLISECONDS_RATE * Constants.MINUTES_RATE) ?
+                durationString + " minutes" :
+                durationString + " minute";
 
         itemsText = (TextView) findViewById(R.id.itemsText);
-        itemsText.setText(text);
+        itemsText.setText(records + " " + durations);
     }
 
     private void goToPlayActivity(String chordID) {

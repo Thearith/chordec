@@ -19,18 +19,39 @@
         android:background="@android:color/transparent"
         android:layout_marginTop="@dimen/record_button_margin_top"/>
 
+
     <TextView
-        android:id="@+id/hintText"
-        android:layout_width="200dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:textSize="25sp"
-        android:layout_marginTop="200dp"
+        android:id="@+id/hintText"
         android:layout_gravity="center_horizontal"
+        android:textSize="25sp"
         android:textColor="#666666"
-        android:text="Please press the button to start recording"
-        android:visibility="visible"/>
+        android:layout_marginTop="39dp"
+        android:text="Please press "
+        android:layout_below="@+id/recordButton"
+        android:layout_alignLeft="@+id/hintText2"
+        android:layout_alignStart="@+id/hintText2" />
+
+    <ImageView
+        android:id="@+id/hintImage"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:src="@drawable/app_logo"
+        android:layout_marginLeft="10dp"
+        android:layout_above="@+id/hintText2"
+        android:layout_toRightOf="@+id/hintText"
+        android:layout_toEndOf="@+id/hintText" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/hintText2"
+        android:textSize="25sp"
+        android:textColor="#666666"
+        android:text="to start recording"
+        android:layout_below="@+id/hintText"
+        android:layout_centerHorizontal="true" />
 
     <ImageView
         android:id="@+id/recordingImage"

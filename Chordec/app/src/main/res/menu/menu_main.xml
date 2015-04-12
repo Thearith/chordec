@@ -5,9 +5,10 @@
 
     <item
         android:title="@string/action_database"
-        android:orderInCategory="0"
+        android:orderInCategory="10"
         android:id="@+id/action_database"
         android:icon="@drawable/database"
-        app:showAsAction="always"/>
+        app:showAsAction="always"
+        />
 
 </menu>

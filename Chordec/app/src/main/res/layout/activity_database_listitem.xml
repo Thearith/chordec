@@ -8,6 +8,12 @@
     android:orientation="horizontal">
 
     <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/delete"
+        />
+
+    <ImageView
         android:id="@+id/roundedLetter"
         android:layout_weight="1"
         android:layout_width="@dimen/list_item_round_letter_width"
