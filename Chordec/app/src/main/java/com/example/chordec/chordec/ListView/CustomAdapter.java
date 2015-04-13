@@ -94,8 +94,8 @@ public class CustomAdapter extends ArrayAdapter<Chord> {
         holder.ChordID.setText(String.valueOf(chords.get(position).getChordID()));
 
         // make round letters
-        String color = Constants.COLORS[
-                (int) (Math.random() * Constants.COLORS.length)];
+        String color = Constants.COLORS[position % Constants.COLORS.length];
+                //(int) (Math.random() * Constants.COLORS.length)];
 
         TextDrawable roundLetter = TextDrawable.builder()
                 .beginConfig()
@@ -108,6 +108,12 @@ public class CustomAdapter extends ArrayAdapter<Chord> {
                         60);
 
         holder.RoundedLetter.setImageDrawable(roundLetter);
+
+        if(mSelectedItemsIds.get(position)) {
+            convertView.setBackgroundColor(Color.parseColor(Constants.SELECTED_COLOUR));
+        } else {
+            convertView.setBackgroundColor(Color.TRANSPARENT);
+        }
 
 
         return convertView;

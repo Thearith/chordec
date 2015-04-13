@@ -1,5 +1,7 @@
 package com.example.chordec.chordec;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -113,20 +115,45 @@ public class DatabaseActivity extends ActionBarActivity {
 
                     case R.id.action_delete:
 
-                        SparseBooleanArray selected = adapter
+                        final SparseBooleanArray selected = adapter
                                 .getSelectedIds();
+                        String itemText = selected.size() > 1 ?
+                                "items" : "item";
 
-                        Log.d(TAG, "clicked");
+                        //create confirmation dialog
+                        AlertDialog.Builder builder = new AlertDialog.Builder(DatabaseActivity.this);
+                        builder.setTitle("Delete Confirmation")
+                               .setIcon(android.R.drawable.ic_dialog_alert)
+                                .setCancelable(false)
+                                .setMessage("Are you sure you wanted to delete " +
+                                    selected.size() + " " + itemText + "?")
+                                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener(){
 
-                        for (int i = (selected.size() - 1); i >= 0; i--) {
-                            if (selected.valueAt(i)) {
-                                Chord chord = adapter
-                                        .getItem(selected.keyAt(i));
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
 
-                                database.deleteChord(chord.getChordID());
-                                adapter.remove(chord);
-                            }
-                        }
+                                        for (int i = (selected.size() - 1); i >= 0; i--) {
+                                            if (selected.valueAt(i)) {
+                                                Chord chord = adapter
+                                                        .getItem(selected.keyAt(i));
+
+                                                database.deleteChord(chord.getChordID());
+                                                adapter.remove(chord);
+                                            }
+                                        }
+
+                                        initializeTextView();
+                                    }
+                                });
+
+                            builder.create().show();
+
 
                         mode.finish();
                         return true;

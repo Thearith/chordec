@@ -28,6 +28,8 @@ public class Constants {
             "#34495e"
     };
 
+    public static final String SELECTED_COLOUR = "#87CEFA";
+
     public static final String CHORD_ID = "com.example.chordec.chordec.CHORD_ID";
 
     public static String getDateFormat(long milliseconds) {

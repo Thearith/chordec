@@ -33,6 +33,7 @@ public class PlayActivity extends ActionBarActivity {
 
     // widgets
     private TextView titleTextView;
+    private TextView scoreTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,9 +87,12 @@ public class PlayActivity extends ActionBarActivity {
     private void initializeWidgets() {
         titleTextView = (TextView) findViewById(R.id.titleTextView);
         titleTextView.setText(chord.getChordName());
+
+        scoreTextView = (TextView)findViewById(R.id.scoreTextView);
+        scoreTextView.setText(scoreFormat(chord.getChordScore()));
     }
 
-    void playRecord(){
+    private void playRecord(){
 
         File file = new File(Environment.getExternalStorageDirectory(), chord.getChordPath());
 
@@ -127,6 +131,11 @@ public class PlayActivity extends ActionBarActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private String scoreFormat(String score) {
+        //TODO return score
+        return score;
     }
 
 }
