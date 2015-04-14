@@ -159,6 +159,25 @@ public class Database extends SQLiteOpenHelper{
         Log.d(TAG, "Chord with id " + chordID + " is deleted from db");
     }
 
+    public int editChord(Chord chord) {
+        SQLiteDatabase database = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(CHORD_NAME, chord.getChordName());
+        values.put(CHORD_SCORE, chord.getChordScore());
+        values.put(CHORD_DURATION, chord.getChordDuration());
+        values.put(CHORD_DATE, chord.getChordDate());
+        values.put(CHORD_FILE_PATH, chord.getChordPath());
+
+        int result = database.update(TABLE_CHORDS, values, CHORD_ID + " = ?", new String[]{
+                String.valueOf(chord.getChordID())
+        });
+
+        database.close();
+
+        return result;
+    }
+
     public ArrayList<Chord> getChords() {
         ArrayList<Chord> chords = new ArrayList<Chord>();
 

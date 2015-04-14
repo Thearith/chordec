@@ -2,6 +2,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.chordec.chordec.PlayActivity">
-    <item android:id="@+id/action_settings" android:title="@string/action_settings"
-        android:orderInCategory="100" app:showAsAction="never" />
+
+    <item
+        android:title="@string/action_edit"
+        android:orderInCategory="10"
+        android:id="@+id/action_edit"
+        android:icon="@drawable/edit"
+        app:showAsAction="always"
+        />
+
+
+
+
 </menu>
