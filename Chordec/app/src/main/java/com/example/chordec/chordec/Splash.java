@@ -26,8 +26,8 @@ public class Splash extends Activity {
 
             @Override
             public void onTick(long l) {
-                new BounceAnimation(logo).setNumOfBounces(1)
-                        .setDuration(PULSE_DURATION).animate();
+//                new BounceAnimation(logo).setNumOfBounces(1)
+//                        .setDuration(PULSE_DURATION).animate();
             }
 
             @Override
