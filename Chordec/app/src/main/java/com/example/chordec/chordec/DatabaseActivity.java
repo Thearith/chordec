@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.Menu;
@@ -20,8 +19,6 @@ import com.example.chordec.chordec.Database.Chord;
 import com.example.chordec.chordec.Database.Database;
 import com.example.chordec.chordec.Helper.Constants;
 import com.example.chordec.chordec.ListView.CustomAdapter;
-
-
 
 public class DatabaseActivity extends ActionBarActivity {
 
@@ -61,7 +58,12 @@ public class DatabaseActivity extends ActionBarActivity {
 
         int id = item.getItemId();
 
-        if (id == R.id.action_delete) {
+        if( id == android.R.id.home ) {
+
+            finish();
+            return true;
+
+        } else if (id == R.id.action_delete) {
             return true;
         }
 
@@ -205,6 +207,9 @@ public class DatabaseActivity extends ActionBarActivity {
 
         startActivity(intent);
     }
+
+
+
 
 
  }

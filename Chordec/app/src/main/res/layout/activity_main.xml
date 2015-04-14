@@ -63,6 +63,19 @@
         android:layout_centerHorizontal="true"
         android:visibility="gone"/>
 
+    <TextView
+        android:id="@+id/chordText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:textColor="#95a5a6"
+        android:textStyle="bold"
+        android:textSize="35sp"
+        android:text="C##"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="320dp"
+        android:visibility="gone"/>
+
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -116,7 +129,6 @@
             android:src="@drawable/stop"/>
 
     </RelativeLayout>
-
 
 
 </RelativeLayout>

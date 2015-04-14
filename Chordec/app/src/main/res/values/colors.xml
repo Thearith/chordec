@@ -6,4 +6,6 @@
     <color name="record_layout">#37474F</color>
     <color name="edit_text_floating_color">#1abc9c</color>
 
+    <color name="play_background">#ECEFF1</color>
+
 </resources>

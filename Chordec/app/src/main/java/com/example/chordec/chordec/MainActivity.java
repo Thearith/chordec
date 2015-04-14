@@ -1,6 +1,7 @@
 package com.example.chordec.chordec;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -497,60 +498,14 @@ public class MainActivity extends ActionBarActivity
 
         // configure dialog
         builder.setView(view)
-              .setCancelable(false)
-              .setNegativeButton(android.R.string.cancel,
-                      new DialogInterface.OnClickListener() {
-
-                          @Override
-                          public void onClick(DialogInterface dialog, int which) {
-                              createConfirmCancelDialog();
-                              dialog.dismiss();
-                          }
-              })
-              .setPositiveButton(android.R.string.ok,
-                      new DialogInterface.OnClickListener() {
-
-                          @Override
-                          public void onClick(DialogInterface dialog, int which) {
-                              String name = editText.getText().toString();
-
-                              if(!name.isEmpty()) {
-                                  saveToDatabase(name, dateFormat);
-                                  Toast.makeText(MainActivity.this,
-                                          "Chord created", Toast.LENGTH_SHORT).show();
-
-                                  //resetting record layout
-                                  isRecordLayoutVisible = false;
-                                  animateRecordButton();
-
-                                  //reset timer
-                                  resetTimer();
-
-                                  dialog.dismiss();
-                              }
-                          }
-              });        builder.setView(view)
                 .setCancelable(false)
                 .setNegativeButton(android.R.string.cancel,
                         new DialogInterface.OnClickListener() {
 
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                resumeTimer();
-                                dialog.dismiss();
-                            }
-                        })
-                .setPositiveButton(android.R.string.ok,
-                        new DialogInterface.OnClickListener() {
 
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                String name = editText.getText().toString();
-
-                                if(!name.isEmpty()) {
-                                    saveToDatabase(name, dateFormat);
-                                    Toast.makeText(MainActivity.this,
-                                            "Chord created", Toast.LENGTH_SHORT).show();
+                                if (which == Dialog.BUTTON_NEGATIVE) {
 
                                     //resetting record layout
                                     isRecordLayoutVisible = false;
@@ -558,11 +513,37 @@ public class MainActivity extends ActionBarActivity
 
                                     //reset timer
                                     resetTimer();
-
                                     dialog.dismiss();
+
                                 }
                             }
-                });
+                        })
+                .setPositiveButton(android.R.string.ok,
+                        new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                if(which == Dialog.BUTTON_POSITIVE) {
+                                    String name = editText.getText().toString();
+
+                                    if (!name.isEmpty()) {
+                                        saveToDatabase(name, dateFormat);
+                                        Toast.makeText(MainActivity.this,
+                                                "Chord created", Toast.LENGTH_SHORT).show();
+
+                                        //resetting record layout
+                                        isRecordLayoutVisible = false;
+                                        animateRecordButton();
+
+                                        //reset timer
+                                        resetTimer();
+
+                                        dialog.dismiss();
+                                    }
+                                }
+                            }
+                        });
 
         AlertDialog dialog = builder.create();
 //        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
@@ -575,10 +556,6 @@ public class MainActivity extends ActionBarActivity
 //        });
 
         dialog.show();
-
-    }
-
-    private void createConfirmCancelDialog() {
 
     }
 

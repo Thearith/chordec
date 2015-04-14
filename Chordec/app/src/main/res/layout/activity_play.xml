@@ -4,6 +4,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
+    android:background="@color/play_background"
     tools:context="com.example.chordec.chordec.PlayActivity">
 
     <TextView
@@ -30,6 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:textSize="15sp"
+            android:textColor="#666"
             android:text="C###"/>
 
         </ScrollView>
