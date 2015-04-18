@@ -8,7 +8,7 @@ Interested in playing a guitar, but unable to hone your basic chords? Chordec pr
 <b>Chord detection library</b>
 
 <ul>
-<li>TarsosDSP : https://JorenSix@github.com/JorenSix/TarsosDSP.git</li>
+<li>TarsosDSP: https://github.com/JorenSix/TarsosDSP <br/> </li>
 </ul>
 
 <b>UI Libraries</b>
