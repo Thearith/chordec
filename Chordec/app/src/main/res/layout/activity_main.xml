@@ -71,7 +71,7 @@
         android:textColor="#95a5a6"
         android:textStyle="bold"
         android:textSize="35sp"
-        android:text="C##"
+        android:text="C"
         android:layout_alignParentTop="true"
         android:layout_marginTop="320dp"
         android:visibility="gone"/>

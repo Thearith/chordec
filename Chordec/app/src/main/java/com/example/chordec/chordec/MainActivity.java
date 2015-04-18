@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
@@ -41,6 +42,13 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import be.tarsos.dsp.AudioDispatcher;
+import be.tarsos.dsp.AudioEvent;
+import be.tarsos.dsp.AudioProcessor;
+import be.tarsos.dsp.io.android.AudioDispatcherFactory;
+import be.tarsos.dsp.pitch.PitchDetectionHandler;
+import be.tarsos.dsp.pitch.PitchDetectionResult;
+import be.tarsos.dsp.pitch.PitchProcessor;
 
 
 public class MainActivity extends ActionBarActivity
@@ -64,6 +72,7 @@ public class MainActivity extends ActionBarActivity
     private ImageButton stopButton;
     private ImageView   recordingImage;
     private TextView    timerTextView;
+    private TextView    chordText;
 
     private TextView    hintText;
     private ImageView    hintImage;
@@ -223,6 +232,8 @@ public class MainActivity extends ActionBarActivity
         hintText2 = (TextView) findViewById(R.id.hintText2);
 
         recordingImage = (ImageView) findViewById(R.id.recordingImage);
+
+        chordText = (TextView) findViewById(R.id.chordText);
     }
 
 
@@ -234,6 +245,7 @@ public class MainActivity extends ActionBarActivity
     private void initializeRecorder() {
         initializeFile();
         initializeSoundSampler();
+        initializeAudioDispatching();
     }
 
     private void initializePositioning() {
@@ -273,6 +285,27 @@ public class MainActivity extends ActionBarActivity
         } catch (Exception e) {
             Toast.makeText(getApplicationContext(),"Cannot initialize SoundSampler.", Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void initializeAudioDispatching() {
+
+        AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050, 1024, 0);
+
+        PitchDetectionHandler pdh = new PitchDetectionHandler() {
+            @Override
+            public void handlePitch(PitchDetectionResult result,AudioEvent e) {
+                final float pitchInHz = result.getPitch();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        chordText.setText("" + pitchInHz);
+                    }
+                });
+            }
+        };
+        AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, pdh);
+        dispatcher.addAudioProcessor(p);
+        new Thread(dispatcher,"Audio Dispatcher").start();
     }
 
     /*
@@ -365,10 +398,14 @@ public class MainActivity extends ActionBarActivity
 
                     lp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
                     lp.setMargins(0, 0, 0, marginBottom);
+
+                    recordButton.setBackgroundResource(R.drawable.white_bg);
                 } else { //move up
                     lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
                     lp.setMargins(0,
                             (int) getResources().getDimension(R.dimen.record_button_margin_top), 0, 0);
+
+                    recordButton.setBackgroundColor(Color.TRANSPARENT);
                 }
 
                 recordButton.setLayoutParams(lp);
@@ -418,6 +455,8 @@ public class MainActivity extends ActionBarActivity
         new FadeOutAnimation(hintText2).setDuration(FADE_DURATION).animate();
 
         new FadeInAnimation(recordingImage).setDuration(FADE_DURATION).animate();
+        new FadeInAnimation(chordText).setDuration(FADE_DURATION).animate();
+
     }
 
     private void setWidgetsInvisible() {
@@ -426,6 +465,7 @@ public class MainActivity extends ActionBarActivity
         new FadeInAnimation(hintText2).setDuration(FADE_DURATION).animate();
 
         new FadeOutAnimation(recordingImage).setDuration(FADE_DURATION).animate();
+        new FadeOutAnimation(chordText).setDuration(FADE_DURATION).animate();
     }
 
 
