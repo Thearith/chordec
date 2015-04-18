@@ -7,7 +7,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -34,9 +36,10 @@ import com.easyandroidanimations.library.RotationAnimation;
 import com.example.chordec.chordec.Database.Chord;
 import com.example.chordec.chordec.Database.Database;
 import com.example.chordec.chordec.Helper.Constants;
-import com.example.chordec.chordec.SoundSampler.SoundSampler;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Timer;
@@ -57,7 +60,7 @@ public class MainActivity extends ActionBarActivity
     // TAG
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String APP_FILE_NAME = "CHORDEC";
-    private static final String FILE_EXTENSION = ".pcm";
+    private static final String FILE_EXTENSION = ".3gp";
 
     // Constants
     private static final int ROTATION_DURATION = 1500;
@@ -75,7 +78,7 @@ public class MainActivity extends ActionBarActivity
     private TextView    chordText;
 
     private TextView    hintText;
-    private ImageView    hintImage;
+    private ImageView   hintImage;
     private TextView    hintText2;
 
     // layouts in activity_main.xml
@@ -87,10 +90,10 @@ public class MainActivity extends ActionBarActivity
     // database
     private static Database database;
 
-    //sound sampling
-    private SoundSampler soundSampler;
-    public  short[]  buffer;
-    public  int      bufferSize = Constants.BUFFER_SIZE;
+    // Media recorder
+    private MediaRecorder audioRecorder;
+
+    // file name
     private String   filePath;
 
 
@@ -243,9 +246,8 @@ public class MainActivity extends ActionBarActivity
     }
 
     private void initializeRecorder() {
-        initializeFile();
-        initializeSoundSampler();
-        initializeAudioDispatching();
+        initializeMediaRecorder();
+        //initializeAudioDispatching();
     }
 
     private void initializePositioning() {
@@ -264,27 +266,18 @@ public class MainActivity extends ActionBarActivity
     }
 
     private void initializeFile() {
-        int nextCardID = database.getNextChordId();
+        String nextCardID = database.getStringNextChordId();
 
-        filePath = APP_FILE_NAME + nextCardID + FILE_EXTENSION;
+        filePath = Environment.getExternalStorageDirectory().
+                getAbsolutePath() +
+                "/" + APP_FILE_NAME + nextCardID + FILE_EXTENSION;
+
+        File directory = new File(filePath).getParentFile();
+        if (!directory.exists() && !directory.mkdirs()) {
+            Log.e(TAG, "Path to file could not be created.");
+        }
+
         Log.d(TAG, filePath);
-    }
-
-    private void initializeSoundSampler(){
-
-        try {
-            soundSampler = new SoundSampler(this, filePath);
-
-        } catch (Exception e) {
-            Toast.makeText(getApplicationContext(), "Cannot instantiate SoundSampler", Toast.LENGTH_LONG).show();
-        }
-
-        try {
-            soundSampler.init();
-
-        } catch (Exception e) {
-            Toast.makeText(getApplicationContext(),"Cannot initialize SoundSampler.", Toast.LENGTH_LONG).show();
-        }
     }
 
     private void initializeAudioDispatching() {
@@ -315,8 +308,12 @@ public class MainActivity extends ActionBarActivity
     public void onClick(View v) {
         switch(v.getId()) {
             case R.id.recordButton:
-                if(!isRecordLayoutVisible)
+                if(!isRecordLayoutVisible) {
                     animateRecordButton();
+                    prepareMediaRecorder();
+                    startMediaRecorder();
+                    Log.d(TAG, "after pressing record button");
+                }
                 isRecordLayoutVisible = true;
 
 
@@ -346,7 +343,6 @@ public class MainActivity extends ActionBarActivity
     * */
 
      private void animateRecordButton() {
-        //changeWidgetsVisibility();
         bounceAnimation();
     }
 
@@ -487,13 +483,8 @@ public class MainActivity extends ActionBarActivity
     * */
 
     private void stopRecording () {
-        initializeFile();
-        stopSampler();
+        stopMediaRecorder();
         saveChord();
-    }
-
-    private void stopSampler() {
-        soundSampler.stop();
     }
 
     private void saveChord() {
@@ -568,13 +559,16 @@ public class MainActivity extends ActionBarActivity
                                     String name = editText.getText().toString();
 
                                     if (!name.isEmpty()) {
+
                                         saveToDatabase(name, dateFormat);
+
                                         Toast.makeText(MainActivity.this,
                                                 "Chord created", Toast.LENGTH_SHORT).show();
 
                                         //resetting record layout
                                         isRecordLayoutVisible = false;
                                         animateRecordButton();
+
 
                                         //reset timer
                                         resetTimer();
@@ -584,18 +578,7 @@ public class MainActivity extends ActionBarActivity
                                 }
                             }
                         });
-
-        AlertDialog dialog = builder.create();
-//        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-//            @Override
-//            public void onShow(DialogInterface dialog) {
-//                String name = editText.getText().toString();
-//                Button positiveButton = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
-//                positiveButton.setEnabled(!name.isEmpty());
-//            }
-//        });
-
-        dialog.show();
+        builder.create().show();
 
     }
 
@@ -620,6 +603,42 @@ public class MainActivity extends ActionBarActivity
     }
 
     /*
+    * Media recorder
+    * */
+
+    private void initializeMediaRecorder() {
+        audioRecorder = new MediaRecorder();
+        audioRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        audioRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        audioRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
+    }
+
+    private void prepareMediaRecorder() {
+        initializeFile();
+        audioRecorder.setOutputFile(filePath);
+    }
+
+    private void startMediaRecorder() {
+        try {
+
+            audioRecorder.prepare();
+            audioRecorder.start();
+
+            Log.d(TAG, "preparing media recorder");
+
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void stopMediaRecorder() {
+        audioRecorder.stop();
+        audioRecorder.release();
+    }
+
+    /*
     * Timer utility functions
     * */
 
@@ -630,10 +649,6 @@ public class MainActivity extends ActionBarActivity
 
     private void pauseTimer() {
         isTimerRunning = false;
-    }
-
-    private void resumeTimer() {
-        isTimerRunning = true;
     }
 
     private void resetTimer() {

@@ -11,7 +11,7 @@ import com.easyandroidanimations.library.BounceAnimation;
 
 public class Splash extends Activity {
 
-    private static int SPLASH_TIME_OUT = 5000;
+    private static int SPLASH_TIME_OUT = 2000;
     private static int PULSE_DURATION = 1000;
     private ImageView logo;
 

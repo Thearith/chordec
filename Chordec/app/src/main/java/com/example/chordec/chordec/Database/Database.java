@@ -1,10 +1,8 @@
 package com.example.chordec.chordec.Database;
 
-import android.app.Application;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -36,7 +34,8 @@ public class Database extends SQLiteOpenHelper{
     private static final int    CHORD_DATE_INDEX = 4;
     private static final int    CHORD_FILE_PATH_INDEX = 5;
 
-    private static final String TABLE_CREATE = "create table "
+
+    private static final String TABLE_CHORD_CREATE = "create table "
             + TABLE_CHORDS  + "(" +
             CHORD_ID            + " integer primary key autoincrement, " +
             CHORD_NAME          + " text not null, "    +
@@ -45,11 +44,14 @@ public class Database extends SQLiteOpenHelper{
             CHORD_DATE    + " text not null, " +
             CHORD_FILE_PATH + " text not null);";
 
+
     private static final String TABLE_CHORD_LOAD =
             "SELECT * FROM " + TABLE_CHORDS + " ORDER BY " + CHORD_ID;
 
     private static final String TABLE_CHORD_COUNT =
             "SELECT * FROM " + TABLE_CHORDS;
+
+    private static final int NUM_RANDOM = 1000000;
 
     public Database(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -57,7 +59,7 @@ public class Database extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase database) {
-        database.execSQL(TABLE_CREATE);
+        database.execSQL(TABLE_CHORD_CREATE);
     }
 
     @Override
@@ -82,6 +84,14 @@ public class Database extends SQLiteOpenHelper{
         database.close();
 
         Log.d(TAG, "Chord with id " + chord.getChordID() + " is inserted into db");
+    }
+
+    public String getStringNextChordId() {
+
+        int numChords = getNumChords();
+        int random  = (int) (Math.random()*NUM_RANDOM);
+
+        return String.valueOf(numChords) + String.valueOf(random);
     }
 
     public int getNextChordId() {

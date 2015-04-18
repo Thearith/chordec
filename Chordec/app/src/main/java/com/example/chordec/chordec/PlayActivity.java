@@ -5,17 +5,19 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.media.AudioFormat;
-import android.media.AudioManager;
-import android.media.AudioTrack;
-import android.os.Environment;
+import android.media.MediaPlayer;
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,19 +26,14 @@ import com.example.chordec.chordec.Database.Database;
 import com.example.chordec.chordec.Helper.Constants;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Date;
 
 
-public class PlayActivity extends ActionBarActivity {
+public class PlayActivity extends ActionBarActivity implements MediaController.MediaPlayerControl {
 
+    private static final String TAG = PlayActivity.class.getSimpleName();
 
     private Database database;
 
@@ -45,6 +42,14 @@ public class PlayActivity extends ActionBarActivity {
     // widgets
     private TextView titleTextView;
     private TextView scoreTextView;
+
+    // media player
+    private MediaPlayer mMediaPlayer;
+
+    // media controller
+    private MediaController mMediaController;
+    private Handler mHandler = new Handler();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +62,7 @@ public class PlayActivity extends ActionBarActivity {
 
         initializeWidgets();
 
-        //playRecord();
+        initializeMedia();
     }
 
 
@@ -82,6 +87,13 @@ public class PlayActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mMediaPlayer.stop();
+        mMediaPlayer.release();
     }
 
     /*
@@ -113,49 +125,47 @@ public class PlayActivity extends ActionBarActivity {
         scoreTextView.setText(scoreFormat(chord.getChordScore()));
     }
 
-    private void playRecord(){
+    private void initializeMedia() {
+        mMediaPlayer = new MediaPlayer();
+        mMediaController = new MediaController(this) {
+            //for not hiding
+            @Override
+            public void hide() {}
 
-        File file = new File(Environment.getExternalStorageDirectory(), chord.getChordPath());
-
-        int shortSizeInBytes = Short.SIZE/Byte.SIZE;
-
-        int bufferSizeInBytes = (int)(file.length()/shortSizeInBytes);
-        short[] audioData = new short[bufferSizeInBytes];
+            //for 'back' key action
+            @Override
+            public boolean dispatchKeyEvent(KeyEvent event) {
+                if(event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+                    Activity a = (Activity)getContext();
+                    a.finish();
+                }
+                return true;
+            }
+        };
+        mMediaController.setMediaPlayer(PlayActivity.this);
+        mMediaController.setAnchorView(findViewById(R.id.audioView));
 
         try {
-            InputStream inputStream = new FileInputStream(file);
-            BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
-            DataInputStream dataInputStream = new DataInputStream(bufferedInputStream);
-
-            int i = 0;
-            while(dataInputStream.available() > 0){
-                audioData[i] = dataInputStream.readShort();
-                i++;
-            }
-
-            dataInputStream.close();
-
-            AudioTrack audioTrack = new AudioTrack(
-                    AudioManager.STREAM_MUSIC,
-                    11025,
-                    AudioFormat.CHANNEL_CONFIGURATION_MONO,
-                    AudioFormat.ENCODING_PCM_16BIT,
-                    bufferSizeInBytes,
-                    AudioTrack.MODE_STREAM);
-
-            audioTrack.play();
-            audioTrack.write(audioData, 0, bufferSizeInBytes);
-
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            mMediaPlayer.setDataSource(chord.getChordPath());
+            mMediaPlayer.prepare();
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("PlayAudioDemo", "Could not open file " + chord.getChordPath() + " for playback.", e);
         }
+
+        mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mHandler.post(new Runnable() {
+                    public void run() {
+                        mMediaController.show(900000000);
+                        mMediaPlayer.start();
+                    }
+                });
+            }
+        });
     }
 
     private String scoreFormat(String score) {
-        //TODO return score
         return score;
     }
 
@@ -244,5 +254,77 @@ public class PlayActivity extends ActionBarActivity {
         chord.setChordName(chordName);
         return database.editChord(chord);
     }
+
+    /*
+    * Media player + media controller
+    * */
+
+    @Override
+    public boolean canPause() {
+        return true;
+    }
+
+    @Override
+    public boolean canSeekBackward() {
+        return false;
+    }
+
+    @Override
+    public boolean canSeekForward() {
+        return false;
+    }
+
+    @Override
+    public int getAudioSessionId() {
+        return 0;
+    }
+
+    @Override
+    public int getBufferPercentage() {
+        int percentage = (mMediaPlayer.getCurrentPosition() * 100) / mMediaPlayer.getDuration();
+
+        return percentage;
+    }
+
+    @Override
+    public int getCurrentPosition() {
+        return mMediaPlayer.getCurrentPosition();
+    }
+
+    @Override
+    public int getDuration() {
+        return mMediaPlayer.getDuration();
+    }
+
+    @Override
+    public boolean isPlaying() {
+        return mMediaPlayer.isPlaying();
+    }
+
+    @Override
+    public void pause() {
+        if(mMediaPlayer.isPlaying())
+            mMediaPlayer.pause();
+    }
+
+    @Override
+    public void seekTo(int pos) {
+        mMediaPlayer.seekTo(pos);
+    }
+
+    @Override
+    public void start() {
+        mMediaPlayer.start();
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        mMediaController.show();
+
+        return false;
+    }
+
+
+
 
 }
