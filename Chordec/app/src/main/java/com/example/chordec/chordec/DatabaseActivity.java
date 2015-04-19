@@ -1,5 +1,9 @@
 package com.example.chordec.chordec;
 
+/**
+ * Created by thearith on 4/4/15.
+ */
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -39,6 +43,8 @@ public class DatabaseActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_database);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         initializeDatabase();
         initializeAdapter();

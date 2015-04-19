@@ -1,5 +1,9 @@
 package com.example.chordec.chordec;
 
+/**
+ * Created by thearith on 10/4/15.
+ */
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -27,6 +31,7 @@ import com.example.chordec.chordec.Database.Database;
 import com.example.chordec.chordec.Helper.Constants;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
@@ -58,11 +63,14 @@ public class PlayActivity extends ActionBarActivity implements MediaController.M
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
 
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         initializeDatabase();
 
         initializeData();
 
         initializeWidgets();
+
 
         initializeMedia();
     }
@@ -84,6 +92,13 @@ public class PlayActivity extends ActionBarActivity implements MediaController.M
         if (id == R.id.action_edit) {
 
             createSaveDialog();
+
+            return true;
+        }
+
+        if(id == android.R.id.home) {
+
+            finish();
 
             return true;
         }
@@ -141,10 +156,16 @@ public class PlayActivity extends ActionBarActivity implements MediaController.M
 
     private void initializeScoreTextView() {
         scoreTextView = (LineTextView)findViewById(R.id.scoreTextView);
-        scoreTextView.setText(scoreFormat(chord.getChordScore()) + " dafdsafdasfdsafdafadsffffffdafdafeareawfhcugdsuyafdasfuasdfyuiasyfasyfasyfiuasyfiyfduiysi");
+        scoreTextView.setText(scoreFormat(chord.getChordScore()));
     }
 
     private void initializeMedia() {
+        File file = new File(chord.getChordPath());
+        if(file.exists())
+            initializeMediaPlayer();
+    }
+
+    private void initializeMediaPlayer() {
         mMediaPlayer = new MediaPlayer();
         mMediaController = new MediaController(this) {
             //for not hiding
@@ -305,8 +326,7 @@ public class PlayActivity extends ActionBarActivity implements MediaController.M
     @Override
     public int getBufferPercentage() {
         if(mMediaPlayer != null) {
-            int percentage = (mMediaPlayer.getCurrentPosition() * 100) / mMediaPlayer.getDuration();
-            return percentage;
+            return (mMediaPlayer.getCurrentPosition() * 100) / mMediaPlayer.getDuration();
         }
 
         return 0;
@@ -330,10 +350,7 @@ public class PlayActivity extends ActionBarActivity implements MediaController.M
 
     @Override
     public boolean isPlaying() {
-        if(mMediaPlayer != null)
-            return mMediaPlayer.isPlaying();
-
-        return false;
+        return mMediaPlayer != null && mMediaPlayer.isPlaying();
     }
 
     @Override
