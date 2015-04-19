@@ -21,6 +21,7 @@ import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.chordec.chordec.CSurfaceView.LineTextView;
 import com.example.chordec.chordec.Database.Chord;
 import com.example.chordec.chordec.Database.Database;
 import com.example.chordec.chordec.Helper.Constants;
@@ -49,6 +50,7 @@ public class PlayActivity extends ActionBarActivity implements MediaController.M
     // media controller
     private MediaController mMediaController;
     private Handler mHandler = new Handler();
+    private Runnable mRunnable;
 
 
     @Override
@@ -90,10 +92,27 @@ public class PlayActivity extends ActionBarActivity implements MediaController.M
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    public void onBackPressed() {
+        super.onBackPressed();
+
+        mMediaController.hide();
+        mHandler.removeCallbacks(mRunnable);
+
         mMediaPlayer.stop();
         mMediaPlayer.release();
+        mMediaPlayer = null;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        mMediaController.hide();
+        mHandler.removeCallbacks(mRunnable);
+
+        mMediaPlayer.stop();
+        mMediaPlayer.release();
+        mMediaPlayer = null;
     }
 
     /*
@@ -121,8 +140,8 @@ public class PlayActivity extends ActionBarActivity implements MediaController.M
     }
 
     private void initializeScoreTextView() {
-        scoreTextView = (TextView)findViewById(R.id.scoreTextView);
-        scoreTextView.setText(scoreFormat(chord.getChordScore()));
+        scoreTextView = (LineTextView)findViewById(R.id.scoreTextView);
+        scoreTextView.setText(scoreFormat(chord.getChordScore()) + " dafdsafdasfdsafdafadsffffffdafdafeareawfhcugdsuyafdasfuasdfyuiasyfasyfasyfiuasyfiyfduiysi");
     }
 
     private void initializeMedia() {
@@ -143,6 +162,7 @@ public class PlayActivity extends ActionBarActivity implements MediaController.M
             }
         };
         mMediaController.setMediaPlayer(PlayActivity.this);
+        mMediaController.setBackgroundResource(R.color.media_controller_bg);
         mMediaController.setAnchorView(findViewById(R.id.audioView));
 
         try {
@@ -152,17 +172,20 @@ public class PlayActivity extends ActionBarActivity implements MediaController.M
             Log.e("PlayAudioDemo", "Could not open file " + chord.getChordPath() + " for playback.", e);
         }
 
+        mRunnable = new Runnable() {
+            public void run() {
+                mMediaPlayer.start();
+                mMediaController.show(900000000);
+            }
+        };
+
         mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
-                mHandler.post(new Runnable() {
-                    public void run() {
-                        mMediaController.show(900000000);
-                        mMediaPlayer.start();
-                    }
-                });
+                mHandler.post(mRunnable);
             }
         });
+
     }
 
     private String scoreFormat(String score) {
@@ -281,24 +304,36 @@ public class PlayActivity extends ActionBarActivity implements MediaController.M
 
     @Override
     public int getBufferPercentage() {
-        int percentage = (mMediaPlayer.getCurrentPosition() * 100) / mMediaPlayer.getDuration();
+        if(mMediaPlayer != null) {
+            int percentage = (mMediaPlayer.getCurrentPosition() * 100) / mMediaPlayer.getDuration();
+            return percentage;
+        }
 
-        return percentage;
+        return 0;
     }
 
     @Override
     public int getCurrentPosition() {
-        return mMediaPlayer.getCurrentPosition();
+        if(mMediaPlayer != null)
+            return mMediaPlayer.getCurrentPosition();
+
+        return 0;
     }
 
     @Override
     public int getDuration() {
-        return mMediaPlayer.getDuration();
+        if(mMediaPlayer != null)
+            return mMediaPlayer.getDuration();
+
+        return 0;
     }
 
     @Override
     public boolean isPlaying() {
-        return mMediaPlayer.isPlaying();
+        if(mMediaPlayer != null)
+            return mMediaPlayer.isPlaying();
+
+        return false;
     }
 
     @Override

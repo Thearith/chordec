@@ -8,28 +8,33 @@
         android:id="@+id/titleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="22sp"
+        android:textSize="25sp"
         android:textStyle="bold"
         android:text="Every teardrop is a waterfall"
         android:layout_gravity="center_horizontal"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="40dp"/>
+        android:layout_marginTop="25dp"/>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="85dp"
         android:layout_marginBottom="100dp"
-        android:padding="10dp">
+        android:padding="20dp"
+        android:background="#F5D76E">
 
-        <TextView
+        <com.example.chordec.chordec.CSurfaceView.LineTextView
             android:id="@+id/scoreTextView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:textSize="15sp"
-            android:textColor="#666"
+            android:layout_height="0dip"
+            android:layout_weight="1"
+            android:minLines="8"
+            android:scrollHorizontally="false"
+            android:scrollbars="vertical"
+            android:lineSpacingExtra="20dp"
+            android:textSize="18sp"
+            android:textColor="#000"
             android:text="C###"/>
 
         </ScrollView>
