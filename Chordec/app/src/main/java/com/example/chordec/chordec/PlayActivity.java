@@ -10,6 +10,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -45,14 +46,10 @@ public class PlayActivity extends ActionBarActivity implements MediaController.M
 
     private Chord chord;
 
-    // widgets
-    private TextView titleTextView;
-    private TextView scoreTextView;
-
     // media player
     private MediaPlayer mMediaPlayer;
 
-    // media controller
+    /* media controller */
     private MediaController mMediaController;
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
@@ -122,12 +119,16 @@ public class PlayActivity extends ActionBarActivity implements MediaController.M
     protected void onDestroy() {
         super.onDestroy();
 
-        mMediaController.hide();
-        mHandler.removeCallbacks(mRunnable);
+        if(mMediaController != null) {
+            mMediaController.hide();
+            mHandler.removeCallbacks(mRunnable);
+        }
 
-        mMediaPlayer.stop();
-        mMediaPlayer.release();
-        mMediaPlayer = null;
+        if(mMediaPlayer != null) {
+            mMediaPlayer.stop();
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+        }
     }
 
     /*
@@ -150,17 +151,18 @@ public class PlayActivity extends ActionBarActivity implements MediaController.M
     }
 
     private void initializeChordNameTextView() {
-        titleTextView = (TextView) findViewById(R.id.titleTextView);
+        TextView titleTextView = (TextView) findViewById(R.id.titleTextView);
         titleTextView.setText(chord.getChordName());
     }
 
     private void initializeScoreTextView() {
-        scoreTextView = (LineTextView)findViewById(R.id.scoreTextView);
+        TextView scoreTextView = (LineTextView) findViewById(R.id.scoreTextView);
         scoreTextView.setText(scoreFormat(chord.getChordScore()));
     }
 
     private void initializeMedia() {
         File file = new File(chord.getChordPath());
+        Log.d(TAG, file.getAbsolutePath());
         if(file.exists())
             initializeMediaPlayer();
     }
@@ -187,7 +189,8 @@ public class PlayActivity extends ActionBarActivity implements MediaController.M
         mMediaController.setAnchorView(findViewById(R.id.audioView));
 
         try {
-            mMediaPlayer.setDataSource(chord.getChordPath());
+            mMediaPlayer.setDataSource(this, Uri.parse(chord.getChordPath()));
+            Log.d(TAG, chord.getChordPath());
             mMediaPlayer.prepare();
         } catch (IOException e) {
             Log.e("PlayAudioDemo", "Could not open file " + chord.getChordPath() + " for playback.", e);
@@ -368,15 +371,5 @@ public class PlayActivity extends ActionBarActivity implements MediaController.M
     public void start() {
         mMediaPlayer.start();
     }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        mMediaController.show();
-
-        return false;
-    }
-
-
-
 
 }

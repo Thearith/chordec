@@ -64,16 +64,42 @@
         android:visibility="gone"/>
 
     <TextView
+        android:id="@+id/hintChordText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:textColor="#95a5a6"
+        android:textStyle="bold"
+        android:textSize="25sp"
+        android:text="Detected Chord: "
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="280dp"
+        android:visibility="gone"/>
+
+    <TextView
         android:id="@+id/chordText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:textColor="#95a5a6"
         android:textStyle="bold"
-        android:textSize="35sp"
+        android:textSize="25sp"
         android:text="C"
         android:layout_alignParentTop="true"
-        android:layout_marginTop="320dp"
+        android:layout_marginTop="310dp"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/pitchText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:textColor="#95a5a6"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:text="C"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="350dp"
         android:visibility="gone"/>
 
 

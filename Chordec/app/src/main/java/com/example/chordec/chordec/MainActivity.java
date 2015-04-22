@@ -11,9 +11,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
-import android.media.MediaRecorder;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -37,22 +35,26 @@ import com.easyandroidanimations.library.BounceAnimation;
 import com.easyandroidanimations.library.FadeInAnimation;
 import com.easyandroidanimations.library.FadeOutAnimation;
 import com.easyandroidanimations.library.RotationAnimation;
+
 import com.example.chordec.chordec.Database.Chord;
 import com.example.chordec.chordec.Database.Database;
 import com.example.chordec.chordec.Helper.Constants;
+import com.example.chordec.chordec.TarsosDSP.SpectralInfo;
+
+import com.example.chordec.chordec.TarsosDSP.AudioDispatcherFactory;
+import com.example.chordec.chordec.TarsosDSP.SpectralPeakProcessor;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
-import java.io.File;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
 import be.tarsos.dsp.AudioProcessor;
-import be.tarsos.dsp.io.android.AudioDispatcherFactory;
 import be.tarsos.dsp.pitch.PitchDetectionHandler;
 import be.tarsos.dsp.pitch.PitchDetectionResult;
 import be.tarsos.dsp.pitch.PitchProcessor;
@@ -64,7 +66,7 @@ public class MainActivity extends ActionBarActivity
     // TAG
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String APP_FILE_NAME = "CHORDEC";
-    private static final String FILE_EXTENSION = ".3gp";
+    private static final String FILE_EXTENSION = ".wav";
 
     // Constants
     private static final int ROTATION_DURATION = 1500;
@@ -72,6 +74,13 @@ public class MainActivity extends ActionBarActivity
     private static final int FADE_DURATION = 1000;
     private static final int PULSE_DURATION = 800;
 
+    // audio sampling constants
+    private static final int  SAMPLING_FREQ = 44100;     // sampling frequency
+    private static final int FFT_LEN = 4096;
+    private static final int STEP_SIZE = 512;
+
+    private double[] N_FREQ =
+            { 61.735,65.406, 69.296, 73.416,77.782,82.407,87.307,92.499,97.999,103.826,110,116.541,123.471, 130.813 }; // actual frequency of bass note in kHz
 
     // widgets in activity_main.xml
     private ImageButton recordButton;
@@ -79,26 +88,32 @@ public class MainActivity extends ActionBarActivity
     private ImageButton stopButton;
     private ImageView   recordingImage;
     private TextView    timerTextView;
-    private TextView    chordText;
 
     private TextView    hintText;
     private ImageView   hintImage;
     private TextView    hintText2;
 
+    private TextView    hintChordText;
+    private TextView    chordText;
+    private TextView    pitchText;
+
     // layouts in activity_main.xml
     private RelativeLayout recordLayout;
     private LinearLayout timerLayout;
 
-
-
     // database
     private static Database database;
 
-    // Media recorder
-    private MediaRecorder audioRecorder;
+    //Dispatcher thread
+    private AudioDispatcher dispatcher;
+    private Thread dispatcherThread;
 
-    // file name
-    private String   filePath;
+    // Tarsos DSP variables
+    private char prevChord = 0;
+    private char currChord = 0;
+    private String chordProgression;
+
+    List<SpectralInfo> spectalInfo;
 
 
     // timer
@@ -108,7 +123,6 @@ public class MainActivity extends ActionBarActivity
     private int   duration;
 
     //dimensions and positioning
-    private int screenWidth;
     private int screenHeight;
     private int translateY;
 
@@ -133,13 +147,13 @@ public class MainActivity extends ActionBarActivity
 
         initializeState();
 
+        initializeSpectralInfo();
+
         initializeTimer();
 
         initializeWidgets();
 
         initializeLayout();
-
-        initializeRecorder();
 
         initializePositioning();
 
@@ -172,8 +186,10 @@ public class MainActivity extends ActionBarActivity
     }
 
     private void goToDatabaseActivity() {
-        Intent intent = new Intent(this, DatabaseActivity.class);
-        startActivity(intent);
+        if(!isRecordLayoutVisible) {
+            Intent intent = new Intent(this, DatabaseActivity.class);
+            startActivity(intent);
+        }
     }
 
     /*
@@ -221,6 +237,10 @@ public class MainActivity extends ActionBarActivity
         timer.scheduleAtFixedRate(timerTask, 0, Constants.MILLISECONDS_RATE);
     }
 
+    private void initializeSpectralInfo() {
+        spectalInfo = new ArrayList<SpectralInfo>();
+    }
+
     private void initializeWidgets() {
         recordButton = (ImageButton) findViewById(R.id.recordButton);
         recordButton.setOnClickListener(this);
@@ -240,7 +260,9 @@ public class MainActivity extends ActionBarActivity
 
         recordingImage = (ImageView) findViewById(R.id.recordingImage);
 
+        hintChordText = (TextView) findViewById(R.id.hintChordText);
         chordText = (TextView) findViewById(R.id.chordText);
+        pitchText = (TextView) findViewById(R.id.pitchText);
     }
 
 
@@ -250,15 +272,13 @@ public class MainActivity extends ActionBarActivity
     }
 
     private void initializeRecorder() {
-        initializeMediaRecorder();
-        //initializeAudioDispatching();
+        initializeSpectralPeakDetector();
     }
 
     private void initializePositioning() {
 
         Point size = getScreenDimension();
 
-        screenWidth = size.x;
         screenHeight = size.y;
 
         translateY = (int) (screenHeight - (
@@ -270,39 +290,70 @@ public class MainActivity extends ActionBarActivity
     }
 
     private void initializeFile() {
-        String nextCardID = database.getStringNextChordId();
-
-        filePath = Environment.getExternalStorageDirectory().
-                getAbsolutePath() +
-                "/" + APP_FILE_NAME + nextCardID + FILE_EXTENSION;
-
-        File directory = new File(filePath).getParentFile();
-        if (!directory.exists() && !directory.mkdirs()) {
-            Log.e(TAG, "Path to file could not be created.");
-        }
-
-        Log.d(TAG, filePath);
+//        String nextCardID = database.getStringNextChordId();
+//
+//        filePath = Environment.getExternalStorageDirectory().
+//                getAbsolutePath() +
+//                "/" + APP_FILE_NAME + nextCardID + FILE_EXTENSION;
+//
+//        File directory = new File(filePath).getParentFile();
+//        if (!directory.exists() && !directory.mkdirs()) {
+//            Log.e(TAG, "Path to file could not be created.");
+//        }
+//
+//        Log.d(TAG, filePath);
     }
 
-    private void initializeAudioDispatching() {
+    private void initializeSpectralPeakDetector(){
+        int overlap = FFT_LEN - STEP_SIZE;
+        overlap = overlap < 1 ? 128 : overlap;
 
-        AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050, 1024, 0);
+        chordProgression = "";
 
+        final SpectralPeakProcessor spectralPeakFollower = new SpectralPeakProcessor(FFT_LEN, overlap, SAMPLING_FREQ);
+        dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(SAMPLING_FREQ, FFT_LEN, 0);
+        AudioDispatcherFactory.startRecording();
+        dispatcher.addAudioProcessor(spectralPeakFollower);
+
+        // add pitch detection
         PitchDetectionHandler pdh = new PitchDetectionHandler() {
             @Override
             public void handlePitch(PitchDetectionResult result,AudioEvent e) {
-                final float pitchInHz = result.getPitch();
+                final int pitchInHz = (int) result.getPitch();
+
+                if(pitchInHz == 24 || pitchInHz == 49 || pitchInHz == 98) {
+                    currChord = 'G';
+                } else if (pitchInHz == 16 || pitchInHz == 32 || pitchInHz == 65) {
+                    currChord = 'C';
+                }else if (pitchInHz == 18 || pitchInHz == 36 || pitchInHz == 73) {
+                    currChord = 'D';
+                }else if (pitchInHz == 20 || pitchInHz == 41 || pitchInHz == 82) {
+                    currChord = 'E';
+                }else if (pitchInHz == 22 || pitchInHz == 43 ) {
+                    currChord = 'F';
+                }else if (pitchInHz == 13 || pitchInHz == 27 || pitchInHz == 54 || pitchInHz == 55) {
+                    currChord = 'A';
+                }
+                if (currChord != prevChord){
+                    prevChord = currChord;
+                    chordProgression += prevChord + ", ";
+                }
+                final char displayChord = prevChord;
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        chordText.setText("" + pitchInHz);
+                        chordText.setText(String.valueOf(displayChord));
+                        if(pitchInHz > 0) {
+                            pitchText.setText(pitchInHz + " Hz");
+                        }
+                        else
+                            pitchText.setText("");
                     }
                 });
             }
         };
-        AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, pdh);
+        AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, SAMPLING_FREQ, FFT_LEN, pdh);
         dispatcher.addAudioProcessor(p);
-        new Thread(dispatcher,"Audio Dispatcher").start();
     }
 
     /*
@@ -314,8 +365,7 @@ public class MainActivity extends ActionBarActivity
             case R.id.recordButton:
                 if(!isRecordLayoutVisible) {
                     animateRecordButton();
-                    prepareMediaRecorder();
-                    startMediaRecorder();
+                    initializeBeforeRecording();
                     Log.d(TAG, "after pressing record button");
                 }
                 isRecordLayoutVisible = true;
@@ -340,6 +390,20 @@ public class MainActivity extends ActionBarActivity
                 Log.e(TAG, "Widget is not recognized");
                 break;
         }
+    }
+
+    /**
+     * Initialize before recording
+     * */
+    private void initializeBeforeRecording() {
+        initializeFile();
+        initializeRecorder();
+        startDispatcherThread();
+    }
+
+    private void startDispatcherThread() {
+        dispatcherThread = new Thread(dispatcher);
+        dispatcherThread.start();
     }
 
     /*
@@ -455,8 +519,9 @@ public class MainActivity extends ActionBarActivity
         new FadeOutAnimation(hintText2).setDuration(FADE_DURATION).animate();
 
         new FadeInAnimation(recordingImage).setDuration(FADE_DURATION).animate();
+        new FadeInAnimation(hintChordText).setDuration(FADE_DURATION).animate();
         new FadeInAnimation(chordText).setDuration(FADE_DURATION).animate();
-
+        new FadeInAnimation(pitchText).setDuration(FADE_DURATION).animate();
     }
 
     private void setWidgetsInvisible() {
@@ -465,7 +530,9 @@ public class MainActivity extends ActionBarActivity
         new FadeInAnimation(hintText2).setDuration(FADE_DURATION).animate();
 
         new FadeOutAnimation(recordingImage).setDuration(FADE_DURATION).animate();
+        new FadeOutAnimation(hintChordText).setDuration(FADE_DURATION).animate();
         new FadeOutAnimation(chordText).setDuration(FADE_DURATION).animate();
+        new FadeOutAnimation(pitchText).setDuration(FADE_DURATION).animate();
     }
 
 
@@ -487,7 +554,6 @@ public class MainActivity extends ActionBarActivity
     * */
 
     private void stopRecording () {
-        stopMediaRecorder();
         saveChord();
     }
 
@@ -542,12 +608,7 @@ public class MainActivity extends ActionBarActivity
 
                                 if (which == Dialog.BUTTON_NEGATIVE) {
 
-                                    //resetting record layout
-                                    isRecordLayoutVisible = false;
-                                    animateRecordButton();
-
-                                    //reset timer
-                                    resetTimer();
+                                    resetAfterRecording();
                                     dialog.dismiss();
 
                                 }
@@ -564,19 +625,13 @@ public class MainActivity extends ActionBarActivity
 
                                     if (!name.isEmpty()) {
 
+                                        saveMusicRecord();
                                         saveToDatabase(name, dateFormat);
 
                                         Toast.makeText(MainActivity.this,
                                                 "Chord created", Toast.LENGTH_SHORT).show();
 
-                                        //resetting record layout
-                                        isRecordLayoutVisible = false;
-                                        animateRecordButton();
-
-
-                                        //reset timer
-                                        resetTimer();
-
+                                        resetAfterRecording();
                                         dialog.dismiss();
                                     }
                                 }
@@ -594,53 +649,56 @@ public class MainActivity extends ActionBarActivity
     private Chord saveContent(String name, String date) {
         Chord chord = new Chord();
 
+        String filePath = AudioDispatcherFactory.getFilename();
+
         chord.setChordName(name);
         chord.setChordID(database.getNextChordId());
         chord.setChordPath(filePath);
         chord.setChordDate(date);
         chord.setChordDuration(duration);
 
-        //TODO: GET REAL SCORE
-        chord.setChordScore("TEE HEE");
+        chord.setChordScore(chordProgression);
 
         return chord;
     }
 
-    /*
-    * Media recorder
-    * */
-
-    private void initializeMediaRecorder() {
-        audioRecorder = new MediaRecorder();
-        audioRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        audioRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        audioRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
+    private void saveMusicRecord() {
+        AudioDispatcherFactory.stopRecording();
     }
 
-    private void prepareMediaRecorder() {
-        initializeFile();
-        audioRecorder.setOutputFile(filePath);
+    /**
+     * reset after recording
+     * */
+    private void resetAfterRecording() {
+        isRecordLayoutVisible = false;
+        animateRecordButton();
+        resetDispatcher();
+        resetTimer();
+
     }
 
-    private void startMediaRecorder() {
+    private void resetDispatcher() {
+        resetChordString();
+        //resetDispatcherThread();
+    }
+
+    private void resetChordString() {
+        chordProgression = "";
+        currChord = prevChord = 0;
+    }
+
+    private void resetDispatcherThread() {
         try {
-
-            audioRecorder.prepare();
-            audioRecorder.start();
-
-            Log.d(TAG, "preparing media recorder");
-
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+            dispatcherThread.join();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
-    private void stopMediaRecorder() {
-        audioRecorder.stop();
-        audioRecorder.release();
-    }
+    /*
+    * Recording audio and writing it to file
+    * */
+
 
     /*
     * Timer utility functions
